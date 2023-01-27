@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd"
+>
+	<card>
+		<title>Basic Configuration</title>
+        
+		<input-field type="single-select">
+			<name>nuveiMode</name>
+			<label>Site Mode</label>
+			<options>
+				<option>
+					<id>sandbox</id>
+					<name>Sandbox</name>
+				</option>
+				<option>
+					<id>live</id>
+					<name>Live</name>
+				</option>
+			</options>
+            <defaultValue>sandbox</defaultValue>
+		</input-field>
+        
+		<input-field type="password">
+			<name>nuveiMerchantId</name>
+			<label>Merchant ID *</label>
+		</input-field>
+        
+		<input-field type="password">
+			<name>nuveiMerchantSiteId</name>
+			<label>Merchant Site ID *</label>
+		</input-field>
+        
+		<input-field type="password">
+			<name>nuveiSecretKey</name>
+			<label>Merchant Secret Key *</label>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiHash</name>
+			<label>Hash type</label>
+			<options>
+				<option>
+					<id>sha256</id>
+					<name>sha256</name>
+				</option>
+				<option>
+					<id>md5</id>
+					<name>md5</name>
+				</option>
+			</options>
+            <defaultValue>sha256</defaultValue>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiPaymentAction</name>
+			<label>Payment action</label>
+			<options>
+				<option>
+					<id>Auth</id>
+					<name>Authorize</name>
+				</option>
+				<option>
+					<id>Sale</id>
+					<name>Authorize and Capture</name>
+				</option>
+			</options>
+            <defaultValue>Auth</defaultValue>
+		</input-field>
+        
+        <input-field type="bool">
+			<name>nuveiSaveLogs</name>
+			<label>Save logs</label>
+            <defaultValue>1</defaultValue>
+		</input-field>
+        
+	</card>
+	
+	<card>
+		<title>Advanced Configuration</title>
+        
+        <input-field type="single-select">
+			<name>nuveiDcc</name>
+			<label>Use currency conversion</label>
+            
+			<options>
+                <option>
+                    <id>false</id>
+                    <name>Disabled</name>
+                </option>
+				<option>
+					<id>enable</id>
+					<name>Enabled</name>
+				</option>
+				<option>
+					<id>force</id>
+					<name>Enabled and expanded</name>
+				</option>
+			</options>
+            
+            <defaultValue>false</defaultValue>
+            
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#Dynamic_Currency_Conversion&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
+		</input-field>
+        
+        <input-field>
+			<name>nuveiBlockedCards</name>
+			<label>Block Cards</label>
+            
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#Card_Blocking_Rules&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
+		</input-field>
+        
+        <input-field>
+			<name>nuveiPmBlockList</name>
+			<label>Block Payment methods</label>
+            
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#APM_WhitelistingBlacklisting&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation and/or ask our TechSupport/Integration Teams for help.&lt;/a&gt;</helpText>
+		</input-field>
+        
+        <input-field type="bool">
+			<name>nuveiUseUpos</name>
+			<label>Allow client to use UPOs</label>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiPayButton</name>
+			<label>Choose the Text on the Pay button</label>
+            
+			<options>
+				<option>
+					<id>amountButton</id>
+					<name>Shows the amount</name>
+				</option>
+				<option>
+					<id>textButton</id>
+					<name>Shows the payment method</name>
+				</option>
+			</options>
+            
+            <defaultValue>amountButton</defaultValue>
+		</input-field>
+        
+        <input-field type="bool">
+			<name>nuveiAutoExpandPms</name>
+			<label>Auto expand PMs</label>
+            
+            <defaultValue>true</defaultValue>
+            
+            <helpText>Turn it On for better user experience.</helpText>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiAutoCloseApmPopup</name>
+			<label>Auto close APM popup</label>
+            
+            <options>
+				<option>
+					<id>1</id>
+					<name>Yes</name>
+				</option>
+				<option>
+					<id>0</id>
+					<name>No</name>
+				</option>
+			</options>
+            
+            <defaultValue>1</defaultValue>
+            
+            <helpText>Recommended value is "Yes".</helpText>
+		</input-field>
+        
+        
+        <input-field type="single-select">
+			<name>nuveiSdkLogLevel</name>
+			<label>Checkout Log level</label>
+            
+            <options>
+				<option>
+					<id>0</id>
+					<name>0</name>
+				</option>
+				<option>
+					<id>1</id>
+					<name>1</name>
+				</option>
+				<option>
+					<id>2</id>
+					<name>2</name>
+				</option>
+				<option>
+					<id>3</id>
+					<name>3</name>
+				</option>
+				<option>
+					<id>4</id>
+					<name>4</name>
+				</option>
+				<option>
+					<id>5</id>
+					<name>5</name>
+				</option>
+				<option>
+					<id>6</id>
+					<name>6</name>
+				</option>
+			</options>
+            
+            <defaultValue>0</defaultValue>
+            
+            <helpText>0 for "No logging".</helpText>
+		</input-field>
+        
+        <input-field type="textarea">
+            <name>nuveiSdkTransl</name>
+			<label>SDK Translations</label>
+            
+            <placeholder>{
+    "de": { 
+        "doNotHonor": "you dont have enough money",
+        "DECLINE": "declined"
+    },
+    "es": { 
+        "doNotHonor": "you dont have enough money",
+        "DECLINE": "declined"
+    }
+}</placeholder>
+        </input-field>
+	</card>
+</config>

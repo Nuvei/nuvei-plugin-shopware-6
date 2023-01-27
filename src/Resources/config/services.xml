@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- Nuvei main class -->
+        <service id="Swag\NuveiCheckout\Service\Nuvei">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
+        
+        <!-- The controller to set final payment status. -->
+        <service id="Swag\NuveiCheckout\Service\NuveiPayment">
+            <argument type="service" 
+                      id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
+            <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="state_machine_state.repository"/>
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+            <argument type="service" id="order_transaction.repository"/>
+            
+            <tag name="shopware.payment.method.sync" />
+        </service>
+        
+        <!-- Checkout controller to use for Ajax calls. -->
+        <service id="Swag\NuveiCheckout\Storefront\Controller\CheckoutController" public="true">
+            <argument type="service" id="payment_method.repository"/>
+            <argument type="service" id="currency.repository"/>
+            <argument type="service" id="customer.repository"/>
+            <argument type="service" id="customer_address.repository"/>
+            <argument type="service" id="country.repository"/>
+            <argument type="service" id="language.repository"/>
+            <argument type="service" id="locale.repository"/>
+            <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
+            <argument type="service" id="Shopware\Core\Checkout\Cart\CartPersister"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+        
+        <!-- DMN controller. -->
+        <service id="Swag\NuveiCheckout\Storefront\Controller\DmnController" public="true">
+            <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="order_transaction.repository"/>
+            <argument type="service" id="order.repository"/>
+            <!--<argument type="service" id="state_machine_state.repository"/>-->
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+            
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+        
+        <!-- Nuvei Admin contrller -->
+        <service id="Swag\NuveiCheckout\Administration\Controller\OrderController" public="true">
+            <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="order_transaction.repository"/>
+            <argument type="service" id="currency.repository"/>
+            <argument type="service" id="order_transaction.repository"/>
+<!--            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>-->
+            
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+        
+        <!-- A subscriber for the Checkout page TODO - it is not used -->
+<!--        <service id="Swag\NuveiCheckout\Subscriber\NuveiSubscriber">
+            <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>-->
+    </services>
+</container>

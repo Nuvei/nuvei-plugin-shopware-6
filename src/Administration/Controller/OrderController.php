@@ -165,7 +165,7 @@ class OrderController extends AbstractController
             $trCreatedAt = $transaction->createdAt->getTimestamp();
             
 //            if ('paid' == $trState) {
-            if (in_array($last_tr['transaction_type'], ['Sale', 'State'])
+            if (in_array($last_tr['transaction_type'], ['Sale', 'Settle'])
                 && 'approved' == strtolower($last_tr['status'])
                 && in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
             ) {
@@ -283,7 +283,7 @@ class OrderController extends AbstractController
                 break;
             }
             
-            if ('void' == $action && in_array($trData['transaction_type'], ['Settle', 'Auth'])) {
+            if ('void' == $action && in_array($trData['transaction_type'], ['Settle', 'Sale', 'Auth'])) {
                 $last_tr['auth_code']   = $trData['auth_code'];
                 $last_tr['tr_id']       = $trId;
                 break;

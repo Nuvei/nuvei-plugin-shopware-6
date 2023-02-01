@@ -135,7 +135,6 @@ class OrderController extends AbstractController
             }
             
             $last_tr = end($customFields['nuveiTransactions']);
-            $this->nuvei->createLog($last_tr);
             # /search for the Order
 
             # search for the Transaction

@@ -243,9 +243,10 @@ class CheckoutController extends StorefrontController
         
         # get cart amount
         $amount = $this->cart->getPrice()->getTotalPrice();
+        $this->nuvei->createLog($amount);
         
         if (!is_numeric($amount) || $amount < 0) {
-            $msg = 'updateOrder - missing the Cart total.';
+            $msg = 'Missing the Cart total.';
 			
             $this->nuvei->createLog($amount, $msg);
             
@@ -260,7 +261,7 @@ class CheckoutController extends StorefrontController
         $curr_data  = $this->currRepository->search($criteria, $this->context)->first();
         
         if (empty($curr_data->isoCode)) {
-            $msg = 'updateOrder - missing the Cart currency ISO code.';
+            $msg = 'Missing the Cart currency ISO code.';
 			
             $this->nuvei->createLog($curr_data, $msg);
             
@@ -279,29 +280,7 @@ class CheckoutController extends StorefrontController
         }
         # /Try to update the order
         
-        // get delivery address
-        $addresses_obj  = $this->cart->getDeliveries()->getAddresses()->getElements();
-        $first_address  = current($addresses_obj);
-        
-        # get customer billing address
-        // get the Customer data
-        $criteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $first_address->getCustomerId()))
-            ->addAssociation('activeBillingAddress');
-        
-        $customer_data = $this->customerRepository->search($criteria, $this->context)->first();
-        
-        // get the Default Billing Address of the Customer
-        $criteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $customer_data->getDefaultBillingAddressId()));
-        
-        $address_data = $this->customerAddressRepository->search($criteria, $this->context)->first();
-        
-        // get the Country
-        $criteria = (new Criteria())->addFilter(new EqualsFilter('id', $address_data->getCountryId()));
-        
-        $country_data = $this->countryRepository->search($criteria, $this->context)->first();
-        # /get customer billing address
+        $addresses = $this->getAddresses();
         
         $oo_params = [
             'amount'            => $amount,
@@ -314,32 +293,13 @@ class CheckoutController extends StorefrontController
 				)
 			),
             'clientUniqueId'    => time() . '_' . uniqid(),
-            'shippingAddress'   => [
-                "firstName"	=> $first_address->getFirstName(),
-                "lastName"	=> $first_address->getLastName(),
-                "address"   => $first_address->getStreet(),
-                "phone"     => $first_address->getPhoneNumber(),
-                "zip"       => $first_address->getZipcode(),
-                "city"      => $first_address->getCountryState()->getName(),
-                'country'	=> $first_address->getCountry()->getIso(),
-                'email'		=> $customer_data->getEmail(),
-            ],
-            'billingAddress'   => [
-                "firstName"	=> $address_data->getFirstname(),
-                "lastName"	=> $address_data->getLastname(),
-                "address"   => $address_data->getStreet(),
-                "phone"     => $address_data->getPhoneNumber(),
-                "zip"       => $address_data->getZipcode(),
-                "city"      => $address_data->getCity(),
-                'country'	=> $country_data->getIso(),
-                'email'		=> $customer_data->getEmail(),
-            ],
+            'shippingAddress'   => $addresses['shippingAddress'],
+            'billingAddress'    => $addresses['billingAddress'],
+            'userDetails'       => $addresses['billingAddress'],
             'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
             'transactionType'   => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
             'merchantDetails'   => ['customField2' => $this->cart->getToken()],
         ];
-        
-        $oo_params['userDetails'] = $oo_params['billingAddress'];
         
         if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
             && $this->isUserLoggedIn
@@ -378,7 +338,7 @@ class CheckoutController extends StorefrontController
      * 
      * @return array
      */
-    private function updateOrder($amount, $currency): array
+    private function updateOrder($amount, $currency)
     {
         $this->nuvei->createLog('updateOrder()');
         
@@ -405,6 +365,8 @@ class CheckoutController extends StorefrontController
             return array('status' => 'ERROR');
 		}
         
+        $addresses = $this->getAddresses();
+        
         // add other parameters
         $up_params = [
             'sessionToken'      => $last_open_order_details['sessionToken'],
@@ -412,6 +374,9 @@ class CheckoutController extends StorefrontController
             'clientRequestId'   => $last_open_order_details['clientRequestId'],
             'amount'            => $amount,
             'currency'          => $currency,
+            'shippingAddress'   => $addresses['shippingAddress'],
+            'billingAddress'    => $addresses['billingAddress'],
+            'userDetails'       => $addresses['billingAddress'],
             'items'				=> array(
 				array(
 					'name'          => 'ShopwaWare_Order',
@@ -429,7 +394,75 @@ class CheckoutController extends StorefrontController
             array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
         );
         
+        // update session data in case there are any changes
+        if(!empty($resp['sessionToken'])
+            && !empty($resp['status'])
+            && 'SUCCESS' == $resp['status']
+        ) {
+            $_SESSION['nuvei_last_open_order_details'] = [
+                'sessionToken'      => $resp['sessionToken'],
+                'orderId'           => $resp['orderId'],
+                'clientRequestId'   => $resp['clientRequestId'],
+                // the next parameters we will use for the JS response
+                'billingAddress'    => $addresses['billingAddress'],
+                'currency'          => $currency,
+                'amount'            => $amount,
+            ];
+        }
+        
         return $resp;
     }
     
+    /**
+     * @return array
+     */
+    private function getAddresses()
+    {
+        // get delivery address
+        $addresses_obj  = $this->cart->getDeliveries()->getAddresses()->getElements();
+        $first_address  = current($addresses_obj);
+        
+        # get customer billing address
+        // get the Customer data
+        $criteria = (new Criteria())
+            ->addFilter(new EqualsFilter('id', $first_address->getCustomerId()))
+            ->addAssociation('activeBillingAddress');
+        
+        $customer_data = $this->customerRepository->search($criteria, $this->context)->first();
+        
+        // get the Default Billing Address of the Customer
+        $criteria = (new Criteria())
+            ->addFilter(new EqualsFilter('id', $customer_data->getDefaultBillingAddressId()));
+        
+        $address_data = $this->customerAddressRepository->search($criteria, $this->context)->first();
+        
+        // get the Country
+        $criteria = (new Criteria())->addFilter(new EqualsFilter('id', $address_data->getCountryId()));
+        
+        $country_data = $this->countryRepository->search($criteria, $this->context)->first();
+        # /get customer billing address
+        
+        return [
+            'shippingAddress'   => [
+                "firstName"	=> $first_address->getFirstName(),
+                "lastName"	=> $first_address->getLastName(),
+                "address"   => $first_address->getStreet(),
+                "phone"     => $first_address->getPhoneNumber(),
+                "zip"       => $first_address->getZipcode(),
+                "city"      => $first_address->getCountryState()->getName(),
+                'country'	=> $first_address->getCountry()->getIso(),
+                'email'		=> $customer_data->getEmail(),
+            ],
+            'billingAddress'   => [
+                "firstName"	=> $address_data->getFirstname(),
+                "lastName"	=> $address_data->getLastname(),
+                "address"   => $address_data->getStreet(),
+                "phone"     => $address_data->getPhoneNumber(),
+                "zip"       => $address_data->getZipcode(),
+                "city"      => $address_data->getCity(),
+                'country'	=> $country_data->getIso(),
+                'email'		=> $customer_data->getEmail(),
+            ],
+        ];
+    }
 }

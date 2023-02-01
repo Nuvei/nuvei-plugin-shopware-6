@@ -133,6 +133,9 @@ class OrderController extends AbstractController
                     'note' => $trData['note'],
                 ];
             }
+            
+            $last_tr = end($customFields['nuveiTransactions']);
+            $this->nuvei->createLog($last_tr);
             # /search for the Order
 
             # search for the Transaction
@@ -162,7 +165,11 @@ class OrderController extends AbstractController
             // set actions
             $trCreatedAt = $transaction->createdAt->getTimestamp();
             
-            if ('paid' == $trState) {
+//            if ('paid' == $trState) {
+            if (in_array($last_tr['transaction_type'], ['Sale', 'State'])
+                && 'approved' == strtolower($last_tr['status'])
+                && in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
+            ) {
                 $canRefund  = true;
                 
                 $this->nuvei->createLog([strtotime('+48 hours'), $trCreatedAt]);
@@ -171,14 +178,21 @@ class OrderController extends AbstractController
                     $canVoid = true;
                 }
             }
-            if ('authorized' == $trState) {
+            
+//            if ('authorized' == $trState) {
+            if ('Auth' == $last_tr['transaction_type']) {
                 $canSettle = true;
                 
-                if (time() <= strtotime('+48 hours') +  $trCreatedAt) {
+                if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
+                    && time() <= strtotime('+48 hours') +  $trCreatedAt
+                ) {
                     $canVoid = true;
                 }
             }
-            if ('refund_partially' == $trState) {
+            
+            if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
+                && 'refund_partially' == $trState
+            ) {
                 $canRefund = true;
             }
         }

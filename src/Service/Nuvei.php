@@ -115,8 +115,8 @@ class Nuvei
     ];
     
     const NUVEI_POP_AUTO_CLOSE_URL  = 'https://cdn.safecharge.com/safecharge_resources/v1/websdk/autoclose.html';
-    
-    const NUVEI_ORDER_ACTIONS = ['settle', 'void', 'refund'];
+    const NUVEI_ORDER_ACTIONS       = ['settle', 'void', 'refund'];
+    const NUVEI_REFUND_PMS          = ['cc_card', 'apmgw_expresscheckout'];
     
     private $restApiIntUrl           = 'https://ppp-test.safecharge.com/ppp/api/v1/';
     private $restApiProdUrl          = 'https://secure.safecharge.com/ppp/api/v1/';

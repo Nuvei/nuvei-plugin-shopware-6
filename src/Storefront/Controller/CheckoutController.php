@@ -313,7 +313,7 @@ class CheckoutController extends StorefrontController
 					'quantity'      => 1
 				)
 			),
-            'clientUniqueId'    => $this->cart->getToken(),
+            'clientUniqueId'    => time() . '_' . uniqid(),
             'shippingAddress'   => [
                 "firstName"	=> $first_address->getFirstName(),
                 "lastName"	=> $first_address->getLastName(),
@@ -336,16 +336,10 @@ class CheckoutController extends StorefrontController
             ],
             'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
             'transactionType'   => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
+            'merchantDetails'   => ['customField2' => $this->cart->getToken()],
         ];
         
         $oo_params['userDetails'] = $oo_params['billingAddress'];
-        
-        if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')) {
-            $oo_params['urlDetails']['successUrl']
-                = $oo_params['urlDetails']['failureUrl']
-                = $oo_params['urlDetails']['pendingUrl']
-                = Nuvei::NUVEI_POP_AUTO_CLOSE_URL;
-        }
         
         if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
             && $this->isUserLoggedIn

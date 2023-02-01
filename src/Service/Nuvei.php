@@ -336,6 +336,16 @@ class Nuvei
         $params['urlDetails']['notificationUrl']    = $params['url'];
         $params['urlDetails']['backUrl']            = $site_url . '//checkout/confirm';
         
+        // add more urlDetails if need them
+        if ((bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
+            && in_array($method, ['openOrder', 'updateOrder'])
+        ) {
+            $params['urlDetails']['successUrl']
+                = $params['urlDetails']['failureUrl']
+                = $params['urlDetails']['pendingUrl']
+                = self::NUVEI_POP_AUTO_CLOSE_URL;
+        }
+        
         // calculate the checksum
         $concat = '';
         

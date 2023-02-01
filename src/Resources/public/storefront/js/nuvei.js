@@ -144,8 +144,17 @@ window.nuveiAfterSdkResponse = function(resp) {
 
     // on decline
     if(resp.result == 'DECLINED') {
-        if (resp.hasOwnProperty('errorDescription') && 'Insufficient funds' == resp.errorDescription) {
+        if (resp.hasOwnProperty('errorDescription')
+            && 'insufficient funds' == resp.errorDescription.toLowerCase()
+        ) {
             alert('You have Insufficient funds, please go back and remove some of the items in your shopping cart, or use another card.');
+            return;
+        }
+        
+        if (resp.hasOwnProperty('reason')
+            && resp.reason.search('The currency is not supported') >= 0
+        ) {
+            alert(resp.reason);
             return;
         }
 

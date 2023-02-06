@@ -60,20 +60,13 @@ class DmnController extends StorefrontController
         $this->nuvei->createLog(@$_REQUEST, 'getDmn');
         
         # manually stop DMN process
-		if($this->getRequestParam('nuvei_stop_dmn') == 1
-            && $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMode') == 'sandbox'
-        ) {
-            $msg = 'DMN report: Manually stopped process.';
-            
-			$this->nuvei->createLog(
-				http_build_query(@$_REQUEST),
-				$msg
-			);
-            
-            return new JsonResponse([
-                'message' => $msg
-            ]);
-		}
+//        $msg = 'DMN report: Manually stopped process.';
+//
+//        $this->nuvei->createLog(http_build_query(@$_REQUEST), $msg);
+//
+//        return new JsonResponse([
+//            'message' => $msg
+//        ]);
         # /manually stop DMN process
         
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
@@ -219,7 +212,6 @@ class DmnController extends StorefrontController
         $concat                 = '';
         $request_params_keys    = array_keys($_REQUEST);
         $custom_params_keys     = array(
-			'nuvei_stop_dmn',
 			'responsechecksum',
 		);
         
@@ -680,33 +672,21 @@ class DmnController extends StorefrontController
 //            ]);
         }
         
-        $this->nuveiOrderData['nuveiTransactions'][$tr_id] = [];
-        
-		if(!empty($status)) {
-			$this->nuveiOrderData['nuveiTransactions'][$tr_id]['status'] = $status;
-		}
-		if(!empty($auth = $this->getRequestParam('AuthCode'))) {
-			$this->nuveiOrderData['nuveiTransactions'][$tr_id]['auth_code'] = (int) $auth;
-		}
-		if(!empty($rel_tr_id = $this->getRequestParam('relatedTransactionId'))) {
-			$this->nuveiOrderData['nuveiTransactions'][$tr_id]['related_transaction_id'] = (int) $rel_tr_id;
-		}
-		if(!empty($tr_type)) {
-			$this->nuveiOrderData['nuveiTransactions'][$tr_id]['transaction_type'] = $tr_type;
-		}
-		if(!empty($pm = $this->getRequestParam('payment_method'))) {
-			$this->nuveiOrderData['nuveiTransactions'][$tr_id]['payment_method'] = $pm;
-		}
-        
-        $this->nuveiOrderData['nuveiTransactions'][$tr_id]['date'] = date('Y-m-d H:i:s');
-        
-//        $this->nuvei->createLog($this->order);
+        $this->nuveiOrderData['nuveiTransactions'][$tr_id] = [
+            'status'                    => $status,
+            'auth_code'                 => $this->getRequestParam('AuthCode'),
+            'related_transaction_id'    => $this->getRequestParam('relatedTransactionId'),
+            'transaction_type'          => $tr_type,
+            'payment_method'            => $this->getRequestParam('payment_method'),
+            'total_amount'              => $this->getRequestParam('totalAmount'),
+            'currency'                  => $this->getRequestParam('currency'),
+            'date'                      => date('Y-m-d H:i:s'),
+            'sw_order_id'               => $this->order->getId(),
+            'sw_order_number'           => $this->order->orderNumber,
+            'sw_transaction_id'         => $this->transaction->getId(),
+        ];
         
         // save few numbers from SW tables
-        $this->nuveiOrderData['nuveiTransactions'][$tr_id]['sw_order_id']       = $this->order->getId();
-        $this->nuveiOrderData['nuveiTransactions'][$tr_id]['sw_order_number']   = $this->order->orderNumber;
-        $this->nuveiOrderData['nuveiTransactions'][$tr_id]['sw_transaction_id'] = $this->transaction->getId();
-        
         $this->nuvei->createLog($this->nuveiOrderData);
         
         return [
@@ -734,7 +714,9 @@ class DmnController extends StorefrontController
         $gw_data = 'Status: ' . $status
 			. ', Transaction Type: ' . $transactionType
 			. ', Transaction ID: ' . $this->getRequestParam('TransactionID')
-			. ', Payment Method: ' . $this->getRequestParam('payment_method');
+			. ', Related Transaction ID: ' . $this->getRequestParam('relatedTransactionId')
+			. ', Payment Method: ' . $this->getRequestParam('payment_method')
+			. ', Total Amount: ' . $this->getRequestParam('totalAmount');
         
         $msg                = $gw_data;
         $orderState         = '';

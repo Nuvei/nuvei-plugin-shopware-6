@@ -101,21 +101,21 @@
             
             <defaultValue>false</defaultValue>
             
-            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#Dynamic_Currency_Conversion&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#dynamic-currency-conversion&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
 		</input-field>
         
         <input-field>
 			<name>nuveiBlockedCards</name>
 			<label>Block Cards</label>
             
-            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#Card_Blocking_Rules&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#card-blocking-rules&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation.&lt;/a&gt;</helpText>
 		</input-field>
         
         <input-field>
 			<name>nuveiPmBlockList</name>
 			<label>Block Payment methods</label>
             
-            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#APM_WhitelistingBlacklisting&quot; class=&quot;class&quot; target=&quot;_blank&quot;&gt;Check the Documentation and/or ask our TechSupport/Integration Teams for help.&lt;/a&gt;</helpText>
+            <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#apm-whitelisting-blacklisting&quot; target=&quot;_blank&quot;&gt;Check the Documentation&lt;/a&gt; and/or ask our TechSupport/Integration Teams for help.</helpText>
 		</input-field>
         
         <input-field type="bool">

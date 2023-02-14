@@ -419,8 +419,14 @@ class CheckoutController extends StorefrontController
     private function getAddresses()
     {
         // get delivery address
-        $addresses_obj  = $this->cart->getDeliveries()->getAddresses()->getElements();
-        $first_address  = current($addresses_obj);
+        $addresses_obj = $this->cart->getDeliveries()->getAddresses()->getElements();
+        
+        if (!is_array($addresses_obj)) {
+            $this->nuvei->createLog($addresses_obj);
+            return [];
+        }
+        
+        $first_address = current($addresses_obj);
         
         # get customer billing address
         // get the Customer data
@@ -449,7 +455,8 @@ class CheckoutController extends StorefrontController
                 "address"   => $first_address->getStreet(),
                 "phone"     => $first_address->getPhoneNumber(),
                 "zip"       => $first_address->getZipcode(),
-                "city"      => $first_address->getCountryState()->getName(),
+//                "city"      => $first_address->getCountryState()->getName(),
+                "city"      => $first_address->getCity(),
                 'country'	=> $first_address->getCountry()->getIso(),
                 'email'		=> $customer_data->getEmail(),
             ],

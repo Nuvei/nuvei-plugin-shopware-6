@@ -678,7 +678,7 @@ class DmnController extends StorefrontController
             'related_transaction_id'    => $this->getRequestParam('relatedTransactionId'),
             'transaction_type'          => $tr_type,
             'payment_method'            => $this->getRequestParam('payment_method'),
-            'total_amount'              => $this->getRequestParam('totalAmount'),
+            'total_amount'              => number_format($this->getRequestParam('totalAmount'), 2, '.'),
             'currency'                  => $this->getRequestParam('currency'),
             'date'                      => date('Y-m-d H:i:s'),
             'sw_order_id'               => $this->order->getId(),

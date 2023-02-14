@@ -712,11 +712,12 @@ class DmnController extends StorefrontController
         $order_amount       = round((float) $this->order->amountTotal, 2);
         
         $gw_data = 'Status: ' . $status
-			. ', Transaction Type: ' . $transactionType
-			. ', Transaction ID: ' . $this->getRequestParam('TransactionID')
-			. ', Related Transaction ID: ' . $this->getRequestParam('relatedTransactionId')
-			. ', Payment Method: ' . $this->getRequestParam('payment_method')
-			. ', Total Amount: ' . $this->getRequestParam('totalAmount');
+			. ',<br/> Transaction Type: ' . $transactionType
+			. ',<br/> Transaction ID: ' . $this->getRequestParam('TransactionID')
+			. ',<br/> Related Transaction ID: ' . $this->getRequestParam('relatedTransactionId')
+			. ',<br/> Payment Method: ' . $this->getRequestParam('payment_method')
+			. ',<br/> Total Amount: ' . $this->getRequestParam('totalAmount')
+			. ',<br/> Currency: ' . $this->getRequestParam('currency');
         
         $msg                = $gw_data;
         $orderState         = '';
@@ -741,7 +742,8 @@ class DmnController extends StorefrontController
                 
                 // Refund
                 if(in_array($transactionType, array('Credit', 'Refund'))) {
-					$msg .= ', Refund Amount: ' . $order_amount;
+					$msg .= ',<br/> Refund Amount: ' . $order_amount
+                        . ',<br/> Currency: ' . $this->getRequestParam('currency');
                     
                     if ($order_amount == $totalAmount) {
                         $transactionState = 'refund';

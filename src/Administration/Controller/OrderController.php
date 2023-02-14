@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 
-//namespace Shopware\Administration\Controller;
 namespace Swag\NuveiCheckout\Administration\Controller;
 
 use Shopware\Core\Framework\Context;
@@ -8,7 +7,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
-//use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

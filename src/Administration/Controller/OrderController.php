@@ -162,7 +162,7 @@ class OrderController extends AbstractController
             // set actions
             $trCreatedAt = $transaction->createdAt->getTimestamp();
             
-//            if ('paid' == $trState) {
+            // actions for Sale and Settle
             if (in_array($last_tr['transaction_type'], ['Sale', 'Settle'])
                 && 'approved' == strtolower($last_tr['status'])
                 && in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
@@ -176,7 +176,7 @@ class OrderController extends AbstractController
                 }
             }
             
-//            if ('authorized' == $trState) {
+            // actions for Auth
             if ('Auth' == $last_tr['transaction_type']) {
                 $canSettle = true;
                 
@@ -187,6 +187,12 @@ class OrderController extends AbstractController
                 }
             }
             
+            // last check for Void
+            if ('cc_card' != $last_tr['payment_method']) {
+                $canVoid = false;
+            }
+            
+            // actions for Auth
             if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
                 && 'refund_partially' == $trState
             ) {

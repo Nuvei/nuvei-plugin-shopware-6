@@ -188,9 +188,9 @@ class OrderController extends AbstractController
             }
             
             // last check for Void
-            if ('cc_card' != $last_tr['payment_method']) {
-                $canVoid = false;
-            }
+//            if ('cc_card' != $last_tr['payment_method']) {
+//                $canVoid = false;
+//            }
             
             // actions for Auth
             if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)
@@ -320,11 +320,15 @@ class OrderController extends AbstractController
             'authCode'              => $last_tr['auth_code'],
         ];
         
-        $resp = $this->nuvei->callRestApi(
-            $action . 'Transaction',
-            $params,
-            ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'authCode', 'url', 'timeStamp']
-        );
+        $checksum_params = ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'authCode', 'url', 'timeStamp'];
+        
+        if (empty($params['authCode'])) {
+            unset($params['authCode']);
+            
+            $checksum_params = ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'url', 'timeStamp'];
+        }
+        
+        $resp = $this->nuvei->callRestApi($action . 'Transaction', $params, $checksum_params);
         
         if(!$resp
             || !is_array($resp)
@@ -334,7 +338,10 @@ class OrderController extends AbstractController
         ) {
             $msg = ucfirst($action) . ' request return Error/Decline.';
             
-            if (!empty($resp['gwErrorReason'])) {
+            if (!empty($resp['paymentMethodErrorReason'])) {
+                $msg = $resp['paymentMethodErrorReason'];
+            }
+            elseif (!empty($resp['gwErrorReason'])) {
                 $msg = $resp['gwErrorReason'];
             }
             elseif (!empty($resp['paymentMethodErrorReason'])) {

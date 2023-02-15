@@ -35,20 +35,17 @@ class DmnController extends StorefrontController
     private $transaction;
     private $stateMachineRegistry;
 
-
     public function __construct(
         Nuvei $nuvei, 
         SystemConfigService $systemConfigService,
         EntityRepositoryInterface $orderTransactionRepo,
         EntityRepositoryInterface $orderRepo,
-//        EntityRepositoryInterface $stateMachineStateRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->nuvei                        = $nuvei;
         $this->systemConfigService          = $systemConfigService;
         $this->orderTransactionRepo         = $orderTransactionRepo;
         $this->orderRepo                    = $orderRepo;
-//        $this->stateMachineStateRepository  = $stateMachineStateRepository;
         $this->stateMachineRegistry         = $stateMachineRegistry;
     }
     
@@ -64,9 +61,7 @@ class DmnController extends StorefrontController
 //
 //        $this->nuvei->createLog(http_build_query(@$_REQUEST), $msg);
 //
-//        return new JsonResponse([
-//            'message' => $msg
-//        ]);
+//        return new JsonResponse(['message' => $msg]);
         # /manually stop DMN process
         
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
@@ -714,9 +709,10 @@ class DmnController extends StorefrontController
         $gw_data = 'Status: ' . $status
 			. ',<br/> Transaction Type: ' . $transactionType
 			. ',<br/> Transaction ID: ' . $this->getRequestParam('TransactionID')
+			. ',<br/> Auth Code: ' . $this->getRequestParam('AuthCode')
 			. ',<br/> Related Transaction ID: ' . $this->getRequestParam('relatedTransactionId')
 			. ',<br/> Payment Method: ' . $this->getRequestParam('payment_method')
-			. ',<br/> Total Amount: ' . $this->getRequestParam('totalAmount')
+			. ',<br/> Total Amount: ' . number_format($this->getRequestParam('totalAmount'), 2, '.')
 			. ',<br/> Currency: ' . $this->getRequestParam('currency');
         
         $msg                = $gw_data;
@@ -742,9 +738,6 @@ class DmnController extends StorefrontController
                 
                 // Refund
                 if(in_array($transactionType, array('Credit', 'Refund'))) {
-					$msg .= ',<br/> Refund Amount: ' . $order_amount
-                        . ',<br/> Currency: ' . $this->getRequestParam('currency');
-                    
                     if ($order_amount == $totalAmount) {
                         $transactionState = 'refund';
                     }

@@ -188,9 +188,9 @@ class OrderController extends AbstractController
             }
             
             // last check for Void
-//            if ('cc_card' != $last_tr['payment_method']) {
-//                $canVoid = false;
-//            }
+            if ('cc_card' != $last_tr['payment_method']) {
+                $canVoid = false;
+            }
             
             // actions for Auth
             if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)

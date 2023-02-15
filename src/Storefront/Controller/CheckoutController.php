@@ -36,6 +36,7 @@ class CheckoutController extends StorefrontController
     private $cartPersister;
     private $sysConfig;
     private $context;
+    private $isUserLoggedIn;
     
     public function __construct(
         EntityRepositoryInterface $pmRepository,
@@ -107,8 +108,13 @@ class CheckoutController extends StorefrontController
         $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
         $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
-        if (!is_null($sales_channel_context->getCustomer())) {
+        if (!is_null($sales_channel_context->getCustomer())
+            && isset($sales_channel_context->getCustomer()->guest)
+            && false === $sales_channel_context->getCustomer()->guest
+        ) {
             $this->isUserLoggedIn = true;
+            
+            $this->nuvei->createLog($sales_channel_context->getCustomer()->guest);
         }
         
         // open the Nuvei Order

@@ -214,10 +214,10 @@ class CheckoutController extends StorefrontController
 			'logLevel'                  => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkLogLevel'),
 			'maskCvv'                   => true,
 			'i18n'                      => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl'),
-            'billingAddress'            => $_SESSION['nuvei_last_open_order_details']['billingAddress'],
-            'userData'                  => [
-                'billingAddress' => $_SESSION['nuvei_last_open_order_details']['billingAddress']
-            ],
+//            'billingAddress'            => $_SESSION['nuvei_last_open_order_details']['billingAddress'],
+//            'userData'                  => [
+//                'billingAddress' => $_SESSION['nuvei_last_open_order_details']['billingAddress']
+//            ],
         ];
         
         if (!empty($blocked_pms)) {

@@ -6,7 +6,6 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +16,6 @@ use Symfony\Component\Routing\Annotation\Route;
  * @author Nuvei
  * @RouteScope(scopes={"api"})
  */
-//class OrderController extends AdministrationController
 class OrderController extends AbstractController
 {
     private $nuvei;
@@ -25,7 +23,6 @@ class OrderController extends AbstractController
     private $transactionRepo;
     private $currRepository;
     private $orderTransactionRepo;
-//    private $stateMachineRegistry;
     private $context;
     
     public function __construct(
@@ -34,14 +31,12 @@ class OrderController extends AbstractController
         EntityRepositoryInterface $transactionRepo,
         EntityRepositoryInterface $currRepository,
         EntityRepositoryInterface $orderTransactionRepo
-//        StateMachineRegistry $stateMachineRegistry
     ) {
         $this->nuvei                = $nuvei;
         $this->orderRepo            = $orderRepo;
         $this->transactionRepo      = $transactionRepo;
         $this->currRepository       = $currRepository;
         $this->orderTransactionRepo = $orderTransactionRepo;
-//        $this->stateMachineRegistry = $stateMachineRegistry;
     }
     
     /**

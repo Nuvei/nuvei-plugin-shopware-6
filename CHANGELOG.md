@@ -3,6 +3,7 @@
 # 1.0.1
 ```
     * Removed billingAddress and userData form SDK request.
+    * Imported a missing class for the admin controller.
 ```
 
 # 1.0.0

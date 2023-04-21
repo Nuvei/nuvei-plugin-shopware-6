@@ -8,7 +8,7 @@
         
 		<input-field type="single-select">
 			<name>nuveiMode</name>
-			<label>Site Mode</label>
+			<label>Site Mode *</label>
 			<options>
 				<option>
 					<id>sandbox</id>
@@ -39,7 +39,7 @@
         
         <input-field type="single-select">
 			<name>nuveiHash</name>
-			<label>Hash type</label>
+			<label>Hash type *</label>
 			<options>
 				<option>
 					<id>sha256</id>
@@ -55,7 +55,7 @@
         
         <input-field type="single-select">
 			<name>nuveiPaymentAction</name>
-			<label>Payment action</label>
+			<label>Payment action *</label>
 			<options>
 				<option>
 					<id>Auth</id>

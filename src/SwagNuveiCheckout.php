@@ -57,7 +57,7 @@ class SwagNuveiCheckout extends Plugin
             // payment handler will be selected by the identifier
             'handlerIdentifier' => NuveiPayment::class,
             'name'              => 'Nuvei payment',
-            'description'       => 'Nuvei payment description',
+            'description'       => 'Secure payments with Nuvei',
             'pluginId'          => $pluginId,
         ];
 

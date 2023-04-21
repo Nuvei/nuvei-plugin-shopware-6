@@ -303,7 +303,7 @@ class CheckoutController extends StorefrontController
             'billingAddress'    => $addresses['billingAddress'],
             'userDetails'       => $addresses['billingAddress'],
             'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
-            'transactionType'   => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
+            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
             'merchantDetails'   => ['customField2' => $this->cart->getToken()],
         ];
         
@@ -379,6 +379,7 @@ class CheckoutController extends StorefrontController
             'orderId'           => $last_open_order_details['orderId'],
             'clientRequestId'   => $last_open_order_details['clientRequestId'],
             'amount'            => $amount,
+            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
             'currency'          => $currency,
             'shippingAddress'   => $addresses['shippingAddress'],
             'billingAddress'    => $addresses['billingAddress'],

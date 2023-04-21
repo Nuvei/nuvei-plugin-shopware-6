@@ -13,7 +13,10 @@ Rename the result folder "SwagNuveiCheckout" and add it to zip file with same na
 
 Login into the SW6 administration and go to Extensions->My Extensions. Click on "Upload extension" and pass SwagNuveiCheckout.zip file.
 
-Please, build your storefront and your administration before start using the plugin. It contains two JS plugins, who need to be added into the system. The build commands are different for Dev and Prod mode.
+Please, build your storefront and your administration before start using the plugin. It contains two JS plugins, who need to be added into the system. The build commands are different for Dev and Prod mode. Example:
+
+bin/build-administration.sh
+bin/build-storefront.sh
 
 Again in "My Extensions" activate the plugin clicking ot the slider right of the logo and the name. Click on the "..." button on the left and select "Configure". Configure the plugin.
 

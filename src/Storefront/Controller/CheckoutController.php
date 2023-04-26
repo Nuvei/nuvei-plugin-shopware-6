@@ -278,19 +278,53 @@ class CheckoutController extends StorefrontController
         # /get cart currency
         
         # Try to update the order
-        $up_resp        = $this->updateOrder($amount, $currency);
-        $resp_status    = $this->nuvei->getRequestStatus($up_resp);
+        $try_update_order               = true;
+        $nuvei_last_open_order_details  = isset($_SESSION['nuvei_last_open_order_details']) 
+            ? $_SESSION['nuvei_last_open_order_details'] : [];
         
-        if (!empty($resp_status) && 'SUCCESS' == $resp_status) {
-            return $up_resp;
+        if (empty($nuvei_last_open_order_details['transactionType'])) {
+            $try_update_order = false;
+        }
+        
+        if ($amount == 0
+            && (empty($nuvei_last_open_order_details['transactionType'])
+                || 'Auth' != $nuvei_last_open_order_details['transactionType']
+            )
+        ) {
+            $try_update_order = false;
+        }
+        
+        if ($amount > 0
+            && !empty($nuvei_last_open_order_details['transactionType'])
+            && 'Auth' == $nuvei_last_open_order_details['transactionType']
+            && $nuvei_last_open_order_details['transactionType']
+                != $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction')
+        ) {
+            $try_update_order = false;
+        }
+        
+        if ($try_update_order) {
+            $up_resp        = $this->updateOrder($amount, $currency);
+            $resp_status    = $this->nuvei->getRequestStatus($up_resp);
+
+            if (!empty($resp_status) && 'SUCCESS' == $resp_status) {
+                return $up_resp;
+            }
         }
         # /Try to update the order
         
         $addresses = $this->getAddresses();
         
         $oo_params = [
+            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
             'amount'            => $amount,
             'currency'          => $currency,
+            'clientUniqueId'    => time() . '_' . uniqid(),
+            'shippingAddress'   => $addresses['shippingAddress'],
+            'billingAddress'    => $addresses['billingAddress'],
+            'userDetails'       => $addresses['billingAddress'],
+            'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
+            'merchantDetails'   => ['customField2' => $this->cart->getToken()],
             'items'				=> array(
 				array(
 					'name'          => 'ShopwaWare_Order',
@@ -298,13 +332,6 @@ class CheckoutController extends StorefrontController
 					'quantity'      => 1
 				)
 			),
-            'clientUniqueId'    => time() . '_' . uniqid(),
-            'shippingAddress'   => $addresses['shippingAddress'],
-            'billingAddress'    => $addresses['billingAddress'],
-            'userDetails'       => $addresses['billingAddress'],
-            'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
-            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
-            'merchantDetails'   => ['customField2' => $this->cart->getToken()],
         ];
         
         if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
@@ -328,6 +355,7 @@ class CheckoutController extends StorefrontController
                 'sessionToken'      => $resp['sessionToken'],
                 'orderId'           => $resp['orderId'],
                 'clientRequestId'   => $resp['clientRequestId'],
+                'transactionType'   => $oo_params['transactionType'],
                 // the next parameters we will use for the JS response
                 'billingAddress'    => $oo_params['billingAddress'],
                 'currency'          => $oo_params['currency'],
@@ -379,7 +407,6 @@ class CheckoutController extends StorefrontController
             'orderId'           => $last_open_order_details['orderId'],
             'clientRequestId'   => $last_open_order_details['clientRequestId'],
             'amount'            => $amount,
-            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
             'currency'          => $currency,
             'shippingAddress'   => $addresses['shippingAddress'],
             'billingAddress'    => $addresses['billingAddress'],

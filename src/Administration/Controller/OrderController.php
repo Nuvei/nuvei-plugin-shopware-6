@@ -173,7 +173,7 @@ class OrderController extends AbstractController
             }
             
             // actions for Auth
-            if ('Auth' == $last_tr['transaction_type']) {
+            if ('Auth' == $last_tr['transaction_type'] && 0 < (float )$order->amountTotal) {
                 $canSettle = true;
                 
                 if (in_array($last_tr['payment_method'], Nuvei::NUVEI_REFUND_PMS)

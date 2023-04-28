@@ -232,6 +232,12 @@ class CheckoutController extends StorefrontController
 //            $checkout_params['pmWhitelist'] = ['cc_card'];
 //        }
         
+        // only CC allowed
+        if (0 == (float) $checkout_params['amount']) {
+            $checkout_params['blockCards']  = null;
+            $checkout_params['pmWhitelist'] = ['cc_card'];
+        }
+        
         $this->nuvei->createLog($checkout_params, 'checkout JS params');
         
         return new JsonResponse([

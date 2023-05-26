@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.0.2
+```
+    * Added new values for sourceApplication and webMasterId parameters.
+```
+
 # 1.0.1
 ```
     * Removed billingAddress and userData form SDK request.

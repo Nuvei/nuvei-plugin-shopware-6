@@ -122,7 +122,7 @@ class Nuvei
     private $restApiProdUrl          = 'https://secure.safecharge.com/ppp/api/v1/';
     private $saveLogs                = true;
     private $sandboxMode             = true;
-    private $nuveiSourceApplication  = ''; // Must be added some day
+    private $nuveiSourceApplication  = 'Shopwre_Plugin';
     private $traceId;
     private $systemConfigService;
     
@@ -309,11 +309,13 @@ class Nuvei
             return $method_params;
         }
         
-        $endpoint   = $this->getEndPointBase() . $method . '.do';
-        $time       = date('YmdHis', time());
-        $json_path  = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-        $json_data  = json_decode(file_get_contents($json_path . 'composer.json'), true);
-        $site_url   = $this->getSiteUrl();
+        $endpoint       = $this->getEndPointBase() . $method . '.do';
+        $time           = date('YmdHis', time());
+        $json_path      = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+        $json_data      = json_decode(file_get_contents($json_path . 'composer.json'), true);
+        $webMasterId    = 'ShopWare 6; Plugin v' . $json_data['version'];
+        $site_url       = $this->getSiteUrl();
+        
         
         // set here some of the mandatory parameters
         $params = array_merge(
@@ -324,7 +326,7 @@ class Nuvei
                 
                 'timeStamp'         => $time,
                 'deviceDetails'     => $this->getDeviceDetails(),
-                'webMasterId'       => 'PrestaShop 6',
+                'webMasterId'       => $webMasterId,
                 'sourceApplication' => $this->nuveiSourceApplication,
                 'url'               => $site_url . '/nuvei_dmn/', // a custom parameter for the checksum
             ],
@@ -332,7 +334,7 @@ class Nuvei
         );
         
         // add few more params
-        $params['merchantDetails']['customField1']  = 'ShopWare 6 Plugin v' . $json_data['version'];
+        $params['merchantDetails']['customField1']  = $webMasterId;
         $params['urlDetails']['notificationUrl']    = $params['url'];
         $params['urlDetails']['backUrl']            = $site_url . '//checkout/confirm';
         

@@ -118,7 +118,7 @@ class Nuvei
     const NUVEI_ORDER_ACTIONS       = ['settle', 'void', 'refund'];
     const NUVEI_REFUND_PMS          = ['cc_card', 'apmgw_expresscheckout'];
     
-    private $restApiIntUrl           = 'https://ppp-test.safecharge.com/ppp/api/v1/';
+    private $restApiIntUrl           = 'https://ppp-test.nuvei.com/ppp/api/v1/';
     private $restApiProdUrl          = 'https://secure.safecharge.com/ppp/api/v1/';
     private $saveLogs                = true;
     private $sandboxMode             = true;

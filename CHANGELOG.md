@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.0.3
+```
+    * New domain for Sandbox endpoints.
+```
+
 # 1.0.2
 ```
     * Added new values for sourceApplication and webMasterId parameters.

@@ -151,6 +151,32 @@
 		</input-field>
         
         <input-field type="single-select">
+			<name>nuveiApmWindowType</name>
+			<label>APMs window type</label>
+            
+            <options>
+				<option>
+					<id></id>
+					<name>Popup</name>
+				</option>
+				
+                <option>
+					<id>newTab</id>
+					<name>New tab</name>
+				</option>
+                
+                <option>
+					<id>redirect</id>
+					<name>Redirect</name>
+				</option>
+			</options>
+            
+            <defaultValue></defaultValue>
+            
+            <helpText>Recommended value is "Yes".</helpText>
+		</input-field>
+        
+        <input-field type="single-select">
 			<name>nuveiAutoCloseApmPopup</name>
 			<label>Auto close APM popup</label>
             

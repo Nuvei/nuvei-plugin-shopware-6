@@ -4,7 +4,7 @@ window.nuveiLastToken = '';
 window.nuveiSdkParams = {};
 
 window.nuveiRenderCheckout = function() {
-    console.log('nuveiRenderCheckout', jQuery);
+    console.log('nuveiRenderCheckout');
     
     var errorMsg    = "Unexpected error, please try different payment method!";
     var xmlhttp     = new XMLHttpRequest();
@@ -37,6 +37,8 @@ window.nuveiRenderCheckout = function() {
                 response.nuveiSdkParams.onResult    = nuveiAfterSdkResponse;
                 response.nuveiSdkParams.prePayment  = nuveiUpdateCart;
                 nuveiLastToken                      = response.nuveiSdkParams.sessionToken;
+
+                console.log('nuveiSdkParams', response.nuveiSdkParams);
 
                 checkout(response.nuveiSdkParams);
                 jQuery('div.checkout-main').find('#nuvei_blocker').hide();

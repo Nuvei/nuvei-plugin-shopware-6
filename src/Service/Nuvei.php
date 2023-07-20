@@ -338,9 +338,14 @@ class Nuvei
         $params['urlDetails']['notificationUrl']    = $params['url'];
         $params['urlDetails']['backUrl']            = $site_url . '//checkout/confirm';
         
-        // add more urlDetails if need them
-        if ((bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
-            && in_array($method, ['openOrder', 'updateOrder'])
+        /**
+         * We need the following URLs only for openOrder and updateOrder requests.
+         * Set them to auto close in case nuveiAutoCloseApmPopup is set to Yes
+         * and when nuveiApmWindowType is different from redirect.
+         */
+        if (in_array($method, ['openOrder', 'updateOrder'])
+            && (bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
+            && 'redirect' != $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiApmWindowType')
         ) {
             $params['urlDetails']['successUrl']
                 = $params['urlDetails']['failureUrl']

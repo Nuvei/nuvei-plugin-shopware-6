@@ -194,7 +194,7 @@ class CheckoutController extends StorefrontController
 			'merchantSiteId'            => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantSiteId'),
 			'country'                   => $_SESSION['nuvei_last_open_order_details']['billingAddress']['country'],
 			'currency'                  => $_SESSION['nuvei_last_open_order_details']['currency'],
-			'amount'                    => $_SESSION['nuvei_last_open_order_details']['amount'],
+			'amount'                    => (string) $_SESSION['nuvei_last_open_order_details']['amount'],
 			'renderTo'                  => '#nuvei_checkout',
 			'useDCC'                    => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc'),
 			'strict'                    => false,
@@ -214,10 +214,7 @@ class CheckoutController extends StorefrontController
 			'logLevel'                  => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkLogLevel'),
 			'maskCvv'                   => true,
 			'i18n'                      => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl'),
-//            'billingAddress'            => $_SESSION['nuvei_last_open_order_details']['billingAddress'],
-//            'userData'                  => [
-//                'billingAddress' => $_SESSION['nuvei_last_open_order_details']['billingAddress']
-//            ],
+			'apmWindowType'             => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiApmWindowType'),
         ];
         
         if (!empty($blocked_pms)) {
@@ -234,7 +231,7 @@ class CheckoutController extends StorefrontController
         
         // only CC allowed
         if (0 == (float) $checkout_params['amount']) {
-            $checkout_params['blockCards']  = null;
+            $checkout_params['pmBlacklist'] = null;
             $checkout_params['pmWhitelist'] = ['cc_card'];
         }
         
@@ -331,6 +328,7 @@ class CheckoutController extends StorefrontController
             'userDetails'       => $addresses['billingAddress'],
             'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
             'merchantDetails'   => ['customField2' => $this->cart->getToken()],
+            'userTokenId'       => $addresses['billingAddress']['email'], // the UPO decision is in the SDK
             'items'				=> array(
 				array(
 					'name'          => 'ShopwaWare_Order',
@@ -340,11 +338,11 @@ class CheckoutController extends StorefrontController
 			),
         ];
         
-        if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
-            && $this->isUserLoggedIn
-        ) {
-            $oo_params['userTokenId'] = $oo_params['billingAddress']['email'];
-        }
+//        if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
+//            && $this->isUserLoggedIn
+//        ) {
+//            $oo_params['userTokenId'] = $oo_params['billingAddress']['email'];
+//        }
         
         $resp = $this->nuvei->callRestApi(
             'openOrder',

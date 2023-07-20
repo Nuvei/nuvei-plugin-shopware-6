@@ -81,6 +81,28 @@
 		<title>Advanced Configuration</title>
         
         <input-field type="single-select">
+            <name>nuveiSdkTheme</name>
+			<label>SDK theme</label>
+            
+            <options>
+                <option>
+                    <id>accordion</id>
+                    <name>Accordion</name>
+                </option>
+				<option>
+					<id>tiles</id>
+					<name>Tiles</name>
+				</option>
+				<option>
+					<id>horizontal</id>
+					<name>Horizontal</name>
+				</option>
+			</options>
+            
+            <defaultValue>accordion</defaultValue>
+        </input-field>
+        
+        <input-field type="single-select">
 			<name>nuveiDcc</name>
 			<label>Use currency conversion</label>
             
@@ -150,7 +172,7 @@
             <helpText>Turn it On for better user experience.</helpText>
 		</input-field>
         
-        <input-field type="single-select">
+<!--        <input-field type="single-select">
 			<name>nuveiApmWindowType</name>
 			<label>APMs window type</label>
             
@@ -174,7 +196,7 @@
             <defaultValue></defaultValue>
             
             <helpText>Recommended value is "Yes".</helpText>
-		</input-field>
+		</input-field>-->
         
         <input-field type="single-select">
 			<name>nuveiAutoCloseApmPopup</name>

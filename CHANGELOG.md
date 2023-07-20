@@ -3,6 +3,7 @@
 # 1.0.3
 ```
     * Added new domain for Sandbox endpoints.
+    * Added option to change the SDK theme.
     * Fix for the Zero-total Order amount error with the SDK.
     * Fix for the Zero-total Order when in the admin is set Block Payment methods list.
     * Pass Order amount to the SDK as string.

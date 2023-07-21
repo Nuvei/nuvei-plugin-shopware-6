@@ -77,8 +77,8 @@ class NuveiPayment implements SynchronousPaymentHandlerInterface
         
         $conn   = Kernel::getConnection();
         $sql    = "UPDATE order_transaction "
-                . "SET `custom_fields` = '" . $json . "' "
-                . "WHERE HEX(id) = '" . $transaction->getOrderTransaction()->getId() . "'";
+            . "SET `custom_fields` = '" . $json . "' "
+            . "WHERE HEX(id) = '" . $transaction->getOrderTransaction()->getId() . "'";
         $result = $conn->executeStatement($sql);
     }
 }

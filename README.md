@@ -3,7 +3,7 @@
 ## Requirements
 Shopware 6.4.  
 Enabled DMN notifications into the merchant account.  
-Whitelisted plugin notification URL - site_domain/nuvei_dmn/.
+Public access to the plugin notification URL - site_domain/nuvei_dmn/.
 
 ## Description
 A Nuvei Simply Connect payment plugin for Shopware 6 with main functionality.

@@ -7,6 +7,7 @@
     * Fix for the Zero-total Order amount error with the SDK.
     * Fix for the Zero-total Order when in the admin is set Block Payment methods list.
     * Pass Order amount to the SDK as string.
+    * When Auth/Sale DMN come and do find the Order, return response statuse 400 to Cashier and waith for the next DMN.
 ```
 
 # 1.0.2

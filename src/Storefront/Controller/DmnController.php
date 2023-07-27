@@ -88,7 +88,7 @@ class DmnController extends StorefrontController
             $this->nuvei->createLog($msg);
             
             return new JsonResponse([
-                'Error' => $msg
+                'error' => $msg
             ]);
 		}
         
@@ -105,7 +105,7 @@ class DmnController extends StorefrontController
         
         if (!$this->validateChecksum()) {
             return new JsonResponse([
-                'Error' => 'Checksum validation faild.'
+                'error' => 'Checksum validation faild.'
             ]);
         }
         
@@ -120,14 +120,14 @@ class DmnController extends StorefrontController
 			$this->nuvei->createLog($msg);
 			
             return new JsonResponse([
-                'Error' => $msg
+                'error' => $msg
             ]);
 		}
         
         // TODO - Subscription Payment DMN
-        if ('subscriptionPayment' == $dmnType && 0 != $tr_id) {
-            $this->dmnSubscrPayment();
-        }
+//        if ('subscriptionPayment' == $dmnType && 0 != $tr_id) {
+//            $this->dmnSubscrPayment();
+//        }
         
 		if(empty($transactionType)) {
             $msg = 'transactionType is empty.';
@@ -135,7 +135,7 @@ class DmnController extends StorefrontController
 			$this->nuvei->createLog($msg);
 			
             return new JsonResponse([
-                'Error' => $msg
+                'error' => $msg
             ]);
 		}
 		
@@ -143,7 +143,9 @@ class DmnController extends StorefrontController
         if(in_array($transactionType, array('Sale', 'Auth'))) {
 			$resp = $this->dmnSaleAuth($tr_id); // array to return as JSON
             
-            return new JsonResponse($resp);
+            $this->nuvei->createLog($resp);
+            
+            return new JsonResponse($resp, !empty($resp['error']) ? 400 : 200);
         }
         
         $clientUniqueId_parts = explode('_', $clientUniqueId);
@@ -405,9 +407,10 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog('dmnSaleAuth()');
 
-        $tries				= 0;
-        $order_id			= '';
-        $max_tries			= 5;
+        $tries		= 0;
+        $order_id   = '';
+        $max_tries  = 5;
+        $sleep_time = 5;
         
         // for the transaction
         $criteria = new Criteria();
@@ -437,7 +440,7 @@ class DmnController extends StorefrontController
             
             if(empty($order_id)) {
                 $this->nuvei->createLog($this->transaction, 'The DMN class wait for the Order.');
-                sleep(3);
+                sleep($sleep_time);
             }
             else {
                 // check for slow saving process
@@ -469,7 +472,7 @@ class DmnController extends StorefrontController
                     );
                     
                     $order_id = ''; // clear the id
-                    sleep(3);
+                    sleep($sleep_time);
                 }
             }
         }
@@ -489,18 +492,17 @@ class DmnController extends StorefrontController
             ];
         }
         
+        // the Order was not found
         if(empty($order_id)) {
             $msg = 'Can not find Order ID.';
                     
             $this->nuvei->createLog($msg);
             
             return [
-                'message' => $msg
+                'error' => $msg
             ];
         }
         
-        // TODO - try to create an Order by DMN data
-
         $up_resp = $this->updateCustomFields($order_id);
         
         if (!isset($up_resp['continue'])) {

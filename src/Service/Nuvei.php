@@ -329,29 +329,31 @@ class Nuvei
                 'webMasterId'       => $webMasterId,
                 'sourceApplication' => $this->nuveiSourceApplication,
                 'url'               => $site_url . '/nuvei_dmn/', // a custom parameter for the checksum
+                'urlDetails'        => [
+                    'notificationUrl'   => $site_url . '/nuvei_dmn/',
+                    'backUrl'           => $site_url . '/checkout/confirm',
+                ],
             ],
             $method_params
         );
         
         // add few more params
         $params['merchantDetails']['customField1']  = $webMasterId;
-        $params['urlDetails']['notificationUrl']    = $params['url'];
-        $params['urlDetails']['backUrl']            = $site_url . '/checkout/confirm';
+//        $params['urlDetails']['notificationUrl']    = $params['url'];
+//        $params['urlDetails']['backUrl']            = $site_url . '/checkout/confirm';
         
         /**
          * We need the following URLs only for openOrder and updateOrder requests.
          * Set them to auto close in case nuveiAutoCloseApmPopup is set to Yes
          * and when nuveiApmWindowType is different from redirect.
          */
-        if (in_array($method, ['openOrder', 'updateOrder'])) {
-            if ((bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
-                && 'redirect' != $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiApmWindowType')
-            ) {
-                $params['urlDetails']['successUrl']
-                    = $params['urlDetails']['failureUrl']
-                    = $params['urlDetails']['pendingUrl']
-                    = self::NUVEI_POP_AUTO_CLOSE_URL;
-            }
+        if (in_array($method, ['openOrder', 'updateOrder'])
+            && (bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
+        ) {
+            $params['urlDetails']['successUrl']
+                = $params['urlDetails']['failureUrl']
+                = $params['urlDetails']['pendingUrl']
+                = self::NUVEI_POP_AUTO_CLOSE_URL;
             
             // TODO - in case of redirect
         }

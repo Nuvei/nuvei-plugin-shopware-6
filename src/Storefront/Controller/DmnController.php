@@ -409,7 +409,7 @@ class DmnController extends StorefrontController
         $order_id           = '';
         $max_tries          = 5;
         $sleep_time         = 5;
-        $order_request_time = Nuvei_Http::get_param('customField3', 'int'); // time of create/update order
+        $order_request_time = $this->getRequestParam('customField3', 0); // time of create/update order
 		
         # for Auth and Sale implement Auto-Void if more than 30 minutes passed and still no Order
         if ($order_request_time > 0
@@ -417,9 +417,9 @@ class DmnController extends StorefrontController
 		) {
             $void_params    = [
                 'clientUniqueId'        => gmdate('YmdHis') . '_' . uniqid(),
-                'amount'                => (string) Nuvei_Http::get_param('totalAmount', 'float'),
-                'currency'              => Nuvei_Http::get_param('currency'),
-                'relatedTransactionId'  => Nuvei_Http::get_param('TransactionID', 'int'),
+                'amount'                => (string) $this->getRequestParam('totalAmount'),
+                'currency'              => $this->getRequestParam('currency'),
+                'relatedTransactionId'  => $this->getRequestParam('TransactionID'),
             ];
             
             $this->nuvei->createLog('Try to Void a transaction by not existing WC Order.');

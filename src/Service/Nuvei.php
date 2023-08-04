@@ -339,6 +339,7 @@ class Nuvei
         
         // add few more params
         $params['merchantDetails']['customField1']  = $webMasterId;
+        $params['merchantDetails']['customField3']  = time();
 //        $params['urlDetails']['notificationUrl']    = $params['url'];
 //        $params['urlDetails']['backUrl']            = $site_url . '/checkout/confirm';
         

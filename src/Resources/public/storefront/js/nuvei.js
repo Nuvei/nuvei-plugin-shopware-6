@@ -83,6 +83,7 @@ window.nuveiUpdateCart = function() {
             if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                 if (xmlhttp.status == 200) {
                     var resp = JSON.parse(xmlhttp.response);
+                    
                     console.log('status == 200', resp);
 
                     if(resp.hasOwnProperty('nuveiSdkParams')
@@ -90,11 +91,13 @@ window.nuveiUpdateCart = function() {
                         && '' != resp.nuveiSdkParams.sessionToken
                         && resp.nuveiSdkParams.sessionToken == nuveiLastToken
                     ) {
+                        console.log('resolve');
                         resolve();
                         return;
                     }
 
                     // reload the Checkout
+                    console.log('reload checkout because of new session token');
                     nuveiLastToken = resp.nuveiSdkParams.sessionToken;
                     checkout(resp.nuveiSdkParams);
                     return;
@@ -102,12 +105,20 @@ window.nuveiUpdateCart = function() {
 
                 if (xmlhttp.status == 400) {
                     console.log('There was an error 400');
-                    reject(errorMsg);
+                    
+                    if (!alert(errorMsg)) {
+                        reject();
+                    }
+                    
                     return;
                 }
 
                 console.log('Nuvei Ajax call unexpected error.');
-                reject(errorMsg);
+                
+                if (!alert(errorMsg)) {
+                    reject();
+                }
+                
                 return;
             }
         };

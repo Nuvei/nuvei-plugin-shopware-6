@@ -58,9 +58,7 @@ class DmnController extends StorefrontController
         
         # manually stop DMN process
 //        $msg = 'DMN report: Manually stopped process.';
-//
 //        $this->nuvei->createLog(http_build_query(@$_REQUEST), $msg);
-//
 //        return new JsonResponse(['message' => $msg]);
         # /manually stop DMN process
         
@@ -110,9 +108,9 @@ class DmnController extends StorefrontController
         }
         
         // TODO - Subscription State DMN
-        if ('subscription' == $dmnType) {
-            $this->dmnSubscrState();
-        }
+//        if ('subscription' == $dmnType) {
+//            $this->dmnSubscrState();
+//        }
         
         if(empty($tr_id) || !is_numeric($tr_id)) {
             $msg = 'TransactionID is empty or not numeric.';
@@ -407,10 +405,42 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog('dmnSaleAuth()');
 
-        $tries		= 0;
-        $order_id   = '';
-        $max_tries  = 5;
-        $sleep_time = 5;
+        $tries              = 0;
+        $order_id           = '';
+        $max_tries          = 5;
+        $sleep_time         = 5;
+        $order_request_time = Nuvei_Http::get_param('customField3', 'int'); // time of create/update order
+		
+        # for Auth and Sale implement Auto-Void if more than 30 minutes passed and still no Order
+        if ($order_request_time > 0
+			&& ( time() - $order_request_time > 1800 ) // more than 30 minutes
+		) {
+            $void_params    = [
+                'clientUniqueId'        => gmdate('YmdHis') . '_' . uniqid(),
+                'amount'                => (string) Nuvei_Http::get_param('totalAmount', 'float'),
+                'currency'              => Nuvei_Http::get_param('currency'),
+                'relatedTransactionId'  => Nuvei_Http::get_param('TransactionID', 'int'),
+            ];
+            
+            $this->nuvei->createLog('Try to Void a transaction by not existing WC Order.');
+            
+            $resp = $this->nuvei->callRestApi(
+                'voidTransaction',
+                $void_params,
+                array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
+            );
+            
+            // Void Success
+            if (!empty($resp['transactionStatus'])
+                && 'APPROVED' == $resp['transactionStatus']
+                && !empty($resp['transactionId'])
+            ) {
+                return [
+                    'message' => 'The searched Order does not exists, a Void request was made for this Transacrion.'
+                ];
+            }
+		}
+        # /for Auth and Sale implement Auto-Void if more than 30 minutes passed and still no Order
         
         // for the transaction
         $criteria = new Criteria();

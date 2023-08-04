@@ -192,9 +192,9 @@ class CheckoutController extends StorefrontController
                 ->get('SwagNuveiCheckout.config.nuveiMode') ? 'test' : 'prod',
 			'merchantId'                => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantId'),
 			'merchantSiteId'            => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantSiteId'),
-			'country'                   => $_SESSION['nuvei_last_open_order_details']['billingAddress']['country'],
-			'currency'                  => $_SESSION['nuvei_last_open_order_details']['currency'],
-			'amount'                    => (string) $_SESSION['nuvei_last_open_order_details']['amount'],
+			'country'                   => $_SESSION['nuvei_order_details']['billingAddress']['country'],
+			'currency'                  => $_SESSION['nuvei_order_details']['currency'],
+			'amount'                    => (string) $_SESSION['nuvei_order_details']['amount'],
 			'renderTo'                  => '#nuvei_checkout',
 			'useDCC'                    => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc'),
 			'strict'                    => false,
@@ -204,9 +204,9 @@ class CheckoutController extends StorefrontController
 //			'pmBlacklist'               => $blocked_pms,
 //            'blockCards'                => $blocked_cards,
 			'alwaysCollectCvv'          => true,
-			'fullName'                  => $_SESSION['nuvei_last_open_order_details']['billingAddress']['firstName'] . ' '
-                . $_SESSION['nuvei_last_open_order_details']['billingAddress']['lastName'],
-			'email'                     => $_SESSION['nuvei_last_open_order_details']['billingAddress']['email'],
+			'fullName'                  => $_SESSION['nuvei_order_details']['billingAddress']['firstName'] . ' '
+                . $_SESSION['nuvei_order_details']['billingAddress']['lastName'],
+			'email'                     => $_SESSION['nuvei_order_details']['billingAddress']['email'],
 			'payButton'                 => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPayButton'),
 			'showResponseMessage'       => false, // shows/hide the response popups
 			'locale'                    => substr($locale_data->getCode(), 0, 2),
@@ -253,7 +253,7 @@ class CheckoutController extends StorefrontController
         
         # get cart amount
         $amount = $this->cart->getPrice()->getTotalPrice();
-        $this->nuvei->createLog($amount);
+//        $this->nuvei->createLog($amount);
         
         if (!is_numeric($amount) || $amount < 0) {
             $msg = 'Missing the Cart total.';
@@ -282,28 +282,46 @@ class CheckoutController extends StorefrontController
         # /get cart currency
         
         # Try to update the order
-        $try_update_order               = true;
-        $nuvei_last_open_order_details  = isset($_SESSION['nuvei_last_open_order_details']) 
-            ? $_SESSION['nuvei_last_open_order_details'] : [];
+        $addresses          = $this->getAddresses();
+        $transactionType    = (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction');
+        $try_update_order   = true;
+        $open_order_details = isset($_SESSION['nuvei_order_details']) 
+            ? $_SESSION['nuvei_order_details'] : [];
         
-        if (empty($nuvei_last_open_order_details['transactionType'])) {
-            $try_update_order = false;
-        }
+//        if (empty($open_order_details['transactionType'])) {
+//            $try_update_order = false;
+//        }
+//        
+//        if ($amount == 0
+//            && (empty($open_order_details['transactionType'])
+//                || 'Auth' != $open_order_details['transactionType']
+//            )
+//        ) {
+//            $try_update_order = false;
+//        }
+//        
+//        if ($amount > 0
+//            && !empty($open_order_details['transactionType'])
+//            && 'Auth' == $open_order_details['transactionType']
+//            && $open_order_details['transactionType']
+//                != $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction')
+//        ) {
+//            $try_update_order = false;
+//        }
         
-        if ($amount == 0
-            && (empty($nuvei_last_open_order_details['transactionType'])
-                || 'Auth' != $nuvei_last_open_order_details['transactionType']
-            )
+        if ($open_order_details['transactionType'] != $transactionType
+            || $open_order_details['userTokenId'] != @$addresses['billingAddress']['email']
         ) {
-            $try_update_order = false;
-        }
-        
-        if ($amount > 0
-            && !empty($nuvei_last_open_order_details['transactionType'])
-            && 'Auth' == $nuvei_last_open_order_details['transactionType']
-            && $nuvei_last_open_order_details['transactionType']
-                != $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction')
-        ) {
+            $this->nuvei->createLog([
+                    $open_order_details['transactionType'],
+                    $transactionType,
+                    $open_order_details['userTokenId'],
+                    @$addresses['billingAddress']['email'],
+                ],
+                '$try_update_order = false',
+                'DEBUG'
+            );
+            
             $try_update_order = false;
         }
         
@@ -317,10 +335,8 @@ class CheckoutController extends StorefrontController
         }
         # /Try to update the order
         
-        $addresses = $this->getAddresses();
-        
         $oo_params = [
-            'transactionType'   => (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction'),
+            'transactionType'   => $transactionType,
             'amount'            => $amount,
             'currency'          => $currency,
             'clientUniqueId'    => time() . '_' . uniqid(),
@@ -330,20 +346,14 @@ class CheckoutController extends StorefrontController
             'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
             'merchantDetails'   => ['customField2' => $this->cart->getToken()],
             'userTokenId'       => $addresses['billingAddress']['email'], // the UPO decision is in the SDK
-            'items'				=> array(
-				array(
-					'name'          => 'ShopwaWare_Order',
-					'price'         => $amount,
-					'quantity'      => 1
-				)
-			),
+//            'items'				=> array(
+//				array(
+//					'name'          => 'ShopwaWare_Order',
+//					'price'         => $amount,
+//					'quantity'      => 1
+//				)
+//			),
         ];
-        
-//        if ((bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiUseUpos')
-//            && $this->isUserLoggedIn
-//        ) {
-//            $oo_params['userTokenId'] = $oo_params['billingAddress']['email'];
-//        }
         
         $resp = $this->nuvei->callRestApi(
             'openOrder',
@@ -356,11 +366,12 @@ class CheckoutController extends StorefrontController
             && !empty($resp['status'])
             && 'SUCCESS' == $resp['status']
         ) {
-            $_SESSION['nuvei_last_open_order_details'] = [
+            $_SESSION['nuvei_order_details'] = [
                 'sessionToken'      => $resp['sessionToken'],
                 'orderId'           => $resp['orderId'],
                 'clientRequestId'   => $resp['clientRequestId'],
-                'transactionType'   => $oo_params['transactionType'],
+                'transactionType'   => $oo_params['transactionType'], 
+                'userTokenId'       => $oo_params['userTokenId'],
                 // the next parameters we will use for the JS response
                 'billingAddress'    => $oo_params['billingAddress'],
                 'currency'          => $oo_params['currency'],
@@ -383,13 +394,13 @@ class CheckoutController extends StorefrontController
         
         $last_open_order_details = [];
         
-        if(!empty($_SESSION['nuvei_last_open_order_details'])) {
-            $last_open_order_details = $_SESSION['nuvei_last_open_order_details'];
+        if(!empty($_SESSION['nuvei_order_details'])) {
+            $last_open_order_details = $_SESSION['nuvei_order_details'];
         }       
         
 		$this->nuvei->createLog(
 			$last_open_order_details,
-			'updateOrder - session nuvei_last_open_order_details'
+			'updateOrder - session nuvei_order_details'
 		);
 		
 		if (empty($last_open_order_details)
@@ -438,15 +449,23 @@ class CheckoutController extends StorefrontController
             && !empty($resp['status'])
             && 'SUCCESS' == $resp['status']
         ) {
-            $_SESSION['nuvei_last_open_order_details'] = [
-                'sessionToken'      => $resp['sessionToken'],
-                'orderId'           => $resp['orderId'],
-                'clientRequestId'   => $resp['clientRequestId'],
-                // the next parameters we will use for the JS response
-                'billingAddress'    => $addresses['billingAddress'],
-                'currency'          => $currency,
-                'amount'            => $amount,
-            ];
+//            $_SESSION['nuvei_order_details'] = [
+//                'sessionToken'      => $resp['sessionToken'],
+//                'orderId'           => $resp['orderId'],
+//                'clientRequestId'   => $resp['clientRequestId'],
+//                // the next parameters we will use for the JS response
+//                'billingAddress'    => $addresses['billingAddress'],
+//                'currency'          => $currency,
+//                'amount'            => currency,
+//            ];
+            
+            $_SESSION['nuvei_order_details']['sessionToken']      = $resp['sessionToken'];
+            $_SESSION['nuvei_order_details']['orderId']           = $resp['orderId'];
+            $_SESSION['nuvei_order_details']['clientRequestId']   = $resp['clientRequestId'];
+            // the next parameters we will use for the JS response
+            $_SESSION['nuvei_order_details']['billingAddress']    = $addresses['billingAddress'];
+            $_SESSION['nuvei_order_details']['amount']            = $amount;
+            $_SESSION['nuvei_order_details']['currency']          = $currency;
         }
         
         return $resp;

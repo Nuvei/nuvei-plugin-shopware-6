@@ -1,5 +1,11 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.0.4
+```
+    * Added Auto-Void logic in case the DMN does not find associated order.
+    * Fix for checkout freez when added additional product from another tab.
+```
+
 # 1.0.3
 ```
     * Added new domain for Sandbox endpoints.

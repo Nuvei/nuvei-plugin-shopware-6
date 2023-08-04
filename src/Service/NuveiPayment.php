@@ -39,7 +39,7 @@ class NuveiPayment implements SynchronousPaymentHandlerInterface
         $this->nuvei                        = $nuvei;
         $this->sysConfig                    = $sysConfig;
         
-        $_SESSION['nuvei_last_open_order_details'] = [];
+        $_SESSION['nuvei_order_details'] = [];
     }
 
     public function pay(

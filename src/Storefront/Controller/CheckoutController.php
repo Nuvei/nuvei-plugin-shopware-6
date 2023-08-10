@@ -190,8 +190,8 @@ class CheckoutController extends StorefrontController
             'sessionToken'              => $resp['sessionToken'],
 			'env'                       => 'sandbox' == $this->sysConfig
                 ->get('SwagNuveiCheckout.config.nuveiMode') ? 'test' : 'prod',
-			'merchantId'                => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantId'),
-			'merchantSiteId'            => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantSiteId'),
+			'merchantId'                => trim($this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantId')),
+			'merchantSiteId'            => trim($this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantSiteId')),
 			'country'                   => $_SESSION['nuvei_order_details']['billingAddress']['country'],
 			'currency'                  => $_SESSION['nuvei_order_details']['currency'],
 			'amount'                    => (string) $_SESSION['nuvei_order_details']['amount'],
@@ -343,7 +343,7 @@ class CheckoutController extends StorefrontController
             'shippingAddress'   => $addresses['shippingAddress'],
             'billingAddress'    => $addresses['billingAddress'],
             'userDetails'       => $addresses['billingAddress'],
-            'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
+//            'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
             'merchantDetails'   => ['customField2' => $this->cart->getToken()],
             'userTokenId'       => $addresses['billingAddress']['email'], // the UPO decision is in the SDK
 //            'items'				=> array(

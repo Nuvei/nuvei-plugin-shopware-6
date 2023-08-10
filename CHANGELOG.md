@@ -4,6 +4,10 @@
 ```
     * Added Auto-Void logic in case the DMN does not find associated order.
     * Fix for checkout freez when added additional product from another tab.
+    * Trim merchant credetntials befor use them.
+    * If validation of the checksum fails, save message to the log.
+    * In the DMN Controller removed the check for empty Transaction ID and Transaction Type.
+    * Lower the time who plugin wait when search for new order.
 ```
 
 # 1.0.3

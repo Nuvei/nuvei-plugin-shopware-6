@@ -102,8 +102,12 @@ class DmnController extends StorefrontController
         }
         
         if (!$this->validateChecksum()) {
+            $msg = 'Checksum validation faild.';
+            
+            $this->nuvei->createLog($msg);
+            
             return new JsonResponse([
-                'error' => 'Checksum validation faild.'
+                'error' => $msg
             ]);
         }
         
@@ -112,30 +116,30 @@ class DmnController extends StorefrontController
 //            $this->dmnSubscrState();
 //        }
         
-        if(empty($tr_id) || !is_numeric($tr_id)) {
-            $msg = 'TransactionID is empty or not numeric.';
-            
-			$this->nuvei->createLog($msg);
-			
-            return new JsonResponse([
-                'error' => $msg
-            ]);
-		}
+//        if(empty($tr_id) || !is_numeric($tr_id)) {
+//            $msg = 'TransactionID is empty or not numeric.';
+//            
+//			$this->nuvei->createLog($msg);
+//			
+//            return new JsonResponse([
+//                'error' => $msg
+//            ]);
+//		}
         
         // TODO - Subscription Payment DMN
 //        if ('subscriptionPayment' == $dmnType && 0 != $tr_id) {
 //            $this->dmnSubscrPayment();
 //        }
         
-		if(empty($transactionType)) {
-            $msg = 'transactionType is empty.';
-            
-			$this->nuvei->createLog($msg);
-			
-            return new JsonResponse([
-                'error' => $msg
-            ]);
-		}
+//		if(empty($transactionType)) {
+//            $msg = 'transactionType is empty.';
+//            
+//			$this->nuvei->createLog($msg);
+//			
+//            return new JsonResponse([
+//                'error' => $msg
+//            ]);
+//		}
 		
         # Sale and Auth
         if(in_array($transactionType, array('Sale', 'Auth'))) {
@@ -405,43 +409,11 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog('dmnSaleAuth()');
 
-        $tries              = 0;
-        $order_id           = '';
-        $max_tries          = 5;
-        $sleep_time         = 5;
-        $order_request_time = $this->getRequestParam('customField3', 0); // time of create/update order
+        $tries      = 0;
+        $order_id   = '';
+        $max_tries  = 4;
+        $sleep_time = 3;
 		
-        # for Auth and Sale implement Auto-Void if more than 30 minutes passed and still no Order
-        if ($order_request_time > 0
-			&& ( time() - $order_request_time > 1800 ) // more than 30 minutes
-		) {
-            $void_params    = [
-                'clientUniqueId'        => gmdate('YmdHis') . '_' . uniqid(),
-                'amount'                => (string) $this->getRequestParam('totalAmount'),
-                'currency'              => $this->getRequestParam('currency'),
-                'relatedTransactionId'  => $this->getRequestParam('TransactionID'),
-            ];
-            
-            $this->nuvei->createLog('Try to Void a transaction by not existing WC Order.');
-            
-            $resp = $this->nuvei->callRestApi(
-                'voidTransaction',
-                $void_params,
-                array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
-            );
-            
-            // Void Success
-            if (!empty($resp['transactionStatus'])
-                && 'APPROVED' == $resp['transactionStatus']
-                && !empty($resp['transactionId'])
-            ) {
-                return [
-                    'message' => 'The searched Order does not exists, a Void request was made for this Transacrion.'
-                ];
-            }
-		}
-        # /for Auth and Sale implement Auto-Void if more than 30 minutes passed and still no Order
-        
         // for the transaction
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.nuveiTrId', $tr_id));
@@ -524,8 +496,16 @@ class DmnController extends StorefrontController
         
         // the Order was not found
         if(empty($order_id)) {
+            if ($this->createAutoVoid()) {
+                $msg = 'The searched Order does not exists, a Void request was made for this Transacrion.';
+                $this->nuvei->createLog($msg);
+                
+                return [
+                    'message' => $msg
+                ];
+            }
+            
             $msg = 'Can not find Order ID.';
-                    
             $this->nuvei->createLog($msg);
             
             return [
@@ -542,6 +522,51 @@ class DmnController extends StorefrontController
         // TODO try to start a Subscription
         
         return $this->changeOrderStatus(); // array with a message
+    }
+    
+    /**
+     * @return boolean
+     */
+    private function createAutoVoid()
+    {
+        $this->nuvei->createLog('createAutoVoid()');
+        
+        $order_request_time = $this->getRequestParam('customField3', 0); // time of create/update order
+        
+        // do not create AutoVoid
+        if (0 == $order_request_time
+            || time() - $order_request_time <= 1800 // less or 30 minutes
+        ) {
+            $this->nuvei->createLog($order_request_time, 'We will not create AutoVoid.');
+            return false;
+        }
+        
+        // create AutoVoid
+        $void_params    = [
+            'clientUniqueId'        => gmdate('YmdHis') . '_' . uniqid(),
+            'amount'                => (string) $this->getRequestParam('totalAmount'),
+            'currency'              => $this->getRequestParam('currency'),
+            'relatedTransactionId'  => $this->getRequestParam('TransactionID'),
+        ];
+
+        $this->nuvei->createLog('Try to Void a transaction for not existing SW Order.');
+
+        $resp = $this->nuvei->callRestApi(
+            'voidTransaction',
+            $void_params,
+            array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
+        );
+
+        // Void Success
+        if (!empty($resp['transactionStatus'])
+            && 'APPROVED' == $resp['transactionStatus']
+            && !empty($resp['transactionId'])
+        ) {
+            return true;
+        }
+        
+        $this->nuvei->createLog(null, 'AutoVoid request error.', 'WARN');
+        return false;
     }
     
     private function dmnSettleVoidRefund($order_number, $transactionType)

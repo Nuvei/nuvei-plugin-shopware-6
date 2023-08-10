@@ -320,8 +320,8 @@ class Nuvei
         // set here some of the mandatory parameters
         $params = array_merge(
             [
-                'merchantId'        => $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMerchantId'),
-                'merchantSiteId'    => $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMerchantSiteId'),
+                'merchantId'        => trim($this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMerchantId')),
+                'merchantSiteId'    => trim($this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMerchantSiteId')),
                 'clientRequestId'   => $time . '_' . uniqid(),
                 
                 'timeStamp'         => $time,
@@ -386,7 +386,7 @@ class Nuvei
         
         $params['checksum'] = hash(
             $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiHash'),
-            $concat . $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiSecretKey')
+            $concat . trim($this->systemConfigService->get('SwagNuveiCheckout.config.nuveiSecretKey'))
         );
         // /calculate the checksum
         

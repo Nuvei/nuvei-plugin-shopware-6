@@ -139,7 +139,9 @@ window.nuveiAfterSdkResponse = function(resp) {
     }
 
     // on success
-    if(resp.result === 'APPROVED' && resp.transactionId != 'undefined') {
+    if( ('APPROVED' == resp.result || 'PENDING' == resp.result)
+        && resp.transactionId != 'undefined'
+    ) {
         console.log('Nuvei TrId', resp.transactionId);
         
         jQuery('body').find('input[name="nuveiTransactionId"]').val(resp.transactionId);

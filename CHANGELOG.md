@@ -8,6 +8,7 @@
     * If validation of the checksum fails, save message to the log.
     * In the DMN Controller removed the check for empty Transaction ID and Transaction Type.
     * Lower the time who plugin wait when search for new order.
+    * Fix for the checkout JS, when the SDK response is with status PENDING.
 ```
 
 # 1.0.3

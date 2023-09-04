@@ -554,7 +554,8 @@ class DmnController extends StorefrontController
         $resp = $this->nuvei->callRestApi(
             'voidTransaction',
             $void_params,
-            array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
+//            array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
+            ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'url', 'timeStamp']
         );
 
         // Void Success

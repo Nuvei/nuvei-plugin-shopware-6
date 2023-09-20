@@ -10,6 +10,7 @@
     * Lower the time who plugin wait when search for new order.
     * Fix for the checkout JS, when the SDK response is with status PENDING.
     * Removed the authCode from the requests parameters.
+    * Set different delay time in the DMN logic according the environment.
 ```
 
 # 1.0.3

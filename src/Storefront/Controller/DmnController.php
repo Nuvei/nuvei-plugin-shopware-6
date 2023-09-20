@@ -409,9 +409,9 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog('dmnSaleAuth()');
 
-        $tries      = 0;
         $order_id   = '';
-        $max_tries  = 4;
+        $tries      = 0;
+        $max_tries  = 'sandbox' == $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMode') ? 10 : 4;
         $sleep_time = 3;
 		
         // for the transaction

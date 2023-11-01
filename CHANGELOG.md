@@ -3,14 +3,16 @@
 # 1.0.4
 ```
     * Added Auto-Void logic in case the DMN does not find associated order.
+    * Removed the authCode from the requests parameters.
+    * Removed the updateOrder request from SDK pre-payment event.
     * Fix for checkout freez when added additional product from another tab.
+    * Fix for the checkout JS, when the SDK response is with status PENDING.
     * Trim merchant credetntials befor use them.
     * If validation of the checksum fails, save message to the log.
     * In the DMN Controller removed the check for empty Transaction ID and Transaction Type.
     * Lower the time who plugin wait when search for new order.
-    * Fix for the checkout JS, when the SDK response is with status PENDING.
-    * Removed the authCode from the requests parameters.
     * Set different delay time in the DMN logic according the environment.
+    * Save original total and currency and save them as custom fields.
 ```
 
 # 1.0.3

@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DmnController extends StorefrontController
 {
+    private $totalCurrAlert = false;
     private $nuvei;
     private $systemConfigService;
     private $orderTransactionRepo;
@@ -34,12 +35,14 @@ class DmnController extends StorefrontController
     private $order;
     private $transaction;
     private $stateMachineRegistry;
+    private $currRepository;
 
     public function __construct(
         Nuvei $nuvei, 
         SystemConfigService $systemConfigService,
         EntityRepositoryInterface $orderTransactionRepo,
         EntityRepositoryInterface $orderRepo,
+        EntityRepositoryInterface $currRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->nuvei                        = $nuvei;
@@ -47,6 +50,7 @@ class DmnController extends StorefrontController
         $this->orderTransactionRepo         = $orderTransactionRepo;
         $this->orderRepo                    = $orderRepo;
         $this->stateMachineRegistry         = $stateMachineRegistry;
+        $this->currRepository               = $currRepository;
     }
     
     /**
@@ -57,11 +61,10 @@ class DmnController extends StorefrontController
         $this->nuvei->createLog(@$_REQUEST, 'getDmn');
         
         # manually stop DMN process
-//        $msg = 'DMN report: Manually stopped process.';
-//        $this->nuvei->createLog(http_build_query(@$_REQUEST), $msg);
-//        return new JsonResponse(['message' => $msg]);
-        # /manually stop DMN process
+//        $this->nuvei->createLog(@$_REQUEST, $msg);
+//        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
         
+        // exit
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
 			$msg = 'DMN CARD_TOKENIZATION accepted.';
             
@@ -80,32 +83,31 @@ class DmnController extends StorefrontController
         // in the Requests made from the admin this holds the Order Number
         $clientUniqueId     = $this->getRequestParam('clientUniqueId');
         
+        // exit
         if (empty($req_status) && !$dmnType) {
 			$msg = 'The Status is empty!';
             
             $this->nuvei->createLog($msg);
-            
             return new JsonResponse([
                 'error' => $msg
             ]);
 		}
         
-        // in case of Pending DMN
+        // exit in case of Pending DMN
         if ('pending' == strtolower($req_status)) {
             $msg = 'Pending DMN. Wait for the final status if not already came.';
             
             $this->nuvei->createLog($msg);
-            
             return new JsonResponse([
                 'message' => $msg
             ]);
         }
         
+        // exit
         if (!$this->validateChecksum()) {
             $msg = 'Checksum validation faild.';
             
             $this->nuvei->createLog($msg);
-            
             return new JsonResponse([
                 'error' => $msg
             ]);
@@ -480,7 +482,7 @@ class DmnController extends StorefrontController
         }
         while($tries <= $max_tries && empty($order_id));
         
-        // already Complete or Cancelled order
+        // exit, already Complete or Cancelled order
         if (in_array(
             $this->order->stateMachineState->technicalName,
             [OrderStates::STATE_COMPLETED, OrderStates::STATE_CANCELLED]
@@ -494,7 +496,7 @@ class DmnController extends StorefrontController
             ];
         }
         
-        // the Order was not found
+        // exit, the Order was not found
         if(empty($order_id)) {
             if ($this->createAutoVoid()) {
                 $msg = 'The searched Order does not exists, a Void request was made for this Transacrion.';
@@ -756,7 +758,6 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog('changeOrderStatus()');
 		
-        $msg				= '';
         // dmn data
         $transactionType    = $this->getRequestParam('transactionType');
         $totalAmount        = (float) $this->getRequestParam('totalAmount');
@@ -809,13 +810,37 @@ class DmnController extends StorefrontController
                 if('Auth' == $transactionType) {
                     $transactionState   = 'authorize';
                 }
-                elseif('Settle' == $transactionType) {
+//                elseif('Settle' == $transactionType) {
+//                    
+//                }
+//				// compare DMN amount and Order amount
+//				elseif('Sale' == $transactionType && $order_amount !== $totalAmount) {
+//                    $msg .= 'The paid amount is different than the Order amount. Please check!';
+//				}
+                
+                // total and currency check
+                if (in_array($transactionType, ['Auth', 'Sale'])) {
+                    if ($order_amount !== $totalAmount
+                        && $order_amount != (float) $this->getRequestParam('customField4')
+                    ) {
+                        $this->totalCurrAlert = true;
+                    }
                     
+                    # get cart currency
+                    $criteria = new Criteria();
+                    $criteria->addFilter(new EqualsFilter('id', $this->order->currencyId));
+
+                    $curr_data  = $this->currRepository->search($criteria, $this->context)->first();
+
+                    $this->nuvei->createLog($curr_data->isoCode);
+//                    if (empty($curr_data->isoCode)) {
+                    
+//                    if ($order_curr !== $this->getRequestParam('currency')
+//                        && $order_curr != $this->getRequestParam('customField5')
+//                    ) {
+//                        $this->totalCurrAlert = true;
+//                    }
                 }
-				// compare DMN amount and Order amount
-				elseif('Sale' == $transactionType && $order_amount !== $totalAmount) {
-                    $msg .= 'The paid amount is different than the Order amount. Please check!';
-				}
                 
                 break;
 

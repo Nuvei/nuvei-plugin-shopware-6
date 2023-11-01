@@ -65,6 +65,9 @@ class CheckoutController extends StorefrontController
     /**
      * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      * 
+     * @param Request $request
+     * @param Context $context
+     * 
      * @return JsonResponse
      */
     public function returnCheckoutData(Request $request, Context $context)
@@ -72,36 +75,15 @@ class CheckoutController extends StorefrontController
         $this->nuvei->createLog('returnCheckoutData');
         
         $this->context  = $context;
-        $selected_pm    = $request->query->get('selected_pm');
+//        $selected_pm    = $request->query->get('selected_pm');
+        $is_nuvei       = $this->isNuveiOrder($request->query->get('selected_pm'));
         
-        if (empty($selected_pm)) {
-            $this->nuvei->createLog('CheckoutController error - selected payment method parameter is empty.');
-            
+        // exit
+        if (!$is_nuvei) {
             return new JsonResponse([
                 'success' => 0,
             ]);
         }
-        
-        # Check if selected payment method is Nuvei
-        $criteria = new Criteria();
-        $criteria->addFilter(new MultiFilter(
-            MultiFilter::CONNECTION_AND,
-            [
-                new EqualsFilter('active', 1),
-                new EqualsFilter('id', $selected_pm),
-                new ContainsFilter('handlerIdentifier', 'NuveiCheckout'),
-            ]
-        ));
-        
-        $pm = $this->paymentMethodRepo->search($criteria, $context)->first();
-        
-        // the selected PM is not Nuvei or is not active
-        if (empty($pm)) {
-            return new JsonResponse([
-                'success' => 0,
-            ]);
-        }
-        # /Check if selected payment method is Nuvei
         
         // get the Cart
         /** @var SalesChannelContext $context */
@@ -114,7 +96,7 @@ class CheckoutController extends StorefrontController
         ) {
             $this->isUserLoggedIn = true;
             
-            $this->nuvei->createLog($sales_channel_context->getCustomer()->guest);
+            $this->nuvei->createLog($sales_channel_context->getCustomer()->guest, 'is guest user');
         }
         
         // open the Nuvei Order
@@ -241,6 +223,60 @@ class CheckoutController extends StorefrontController
         return new JsonResponse([
             'success'           => 1,
             'nuveiSdkParams'    => $checkout_params,
+            'texts'             => [
+                'cardNeedToRefresh' => $this->trans('The Card data need to be refreshed.'),
+            ]
+        ]);
+    }
+    
+    /**
+     * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
+     * 
+     * @param Request $request
+     * @param Context $context
+     * 
+     * @return JsonResponse
+     */
+    public function prePaymentCheck(Request $request, Context $context)
+    {
+        $this->nuvei->createLog('prePaymentCheck');
+        
+        $this->context  = $context;
+        $is_nuvei       = $this->isNuveiOrder($request->query->get('selected_pm'));
+        
+        // exit
+        if (!$is_nuvei) {
+            return new JsonResponse([
+                'success' => 0,
+            ]);
+        }
+        
+        // get the Cart
+        /** @var SalesChannelContext $context */
+        $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
+        $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
+        
+        $session_data   = $_SESSION['nuvei_order_details']['itemsDataHash'] ?? [];
+        $current_data   = $this->getItemsBaseData();
+        
+        // success
+        if ($session_data == md5(serialize($current_data))) {
+            return new JsonResponse([
+                'success' => 1,
+            ]);
+        }
+        
+        // error
+        $this->nuvei->createLog(
+            [
+                'session itemsDataHash' => $session_data,
+                'cart itemsDataHash'    => md5(serialize($current_data)),
+            ],
+            'prePaymentCheck error'
+        );
+        
+        return new JsonResponse([
+            'success' => 0,
         ]);
     }
     
@@ -253,8 +289,8 @@ class CheckoutController extends StorefrontController
         
         # get cart amount
         $amount = $this->cart->getPrice()->getTotalPrice();
-//        $this->nuvei->createLog($amount);
         
+        // exit
         if (!is_numeric($amount) || $amount < 0) {
             $msg = 'Missing the Cart total.';
 			
@@ -272,7 +308,6 @@ class CheckoutController extends StorefrontController
         
         if (empty($curr_data->isoCode)) {
             $msg = 'Missing the Cart currency ISO code.';
-			
             $this->nuvei->createLog($curr_data, $msg);
             
             return ['status' => 'ERROR'];
@@ -281,9 +316,17 @@ class CheckoutController extends StorefrontController
         $currency = $curr_data->isoCode;
         # /get cart currency
         
+        // get base items data
+        $items_data = $this->getItemsBaseData();
+        
+        if (empty($items_data)) {
+            return ['status' => 'ERROR'];
+        }
+        
         # Try to update the order
         $addresses          = $this->getAddresses();
-        $transactionType    = (float) $amount == 0 ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction');
+        $transactionType    = (float) $amount == 0 
+            ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction');
         $try_update_order   = true;
         $open_order_details = isset($_SESSION['nuvei_order_details']) 
             ? $_SESSION['nuvei_order_details'] : [];
@@ -326,7 +369,7 @@ class CheckoutController extends StorefrontController
         }
         
         if ($try_update_order) {
-            $up_resp        = $this->updateOrder($amount, $currency);
+            $up_resp        = $this->updateOrder($amount, $currency, $items_data);
             $resp_status    = $this->nuvei->getRequestStatus($up_resp);
 
             if (!empty($resp_status) && 'SUCCESS' == $resp_status) {
@@ -343,16 +386,12 @@ class CheckoutController extends StorefrontController
             'shippingAddress'   => $addresses['shippingAddress'],
             'billingAddress'    => $addresses['billingAddress'],
             'userDetails'       => $addresses['billingAddress'],
-//            'paymentOption'     => ['card' => ['threeD' => ['isDynamic3D' => 1]]],
-            'merchantDetails'   => ['customField2' => $this->cart->getToken()],
             'userTokenId'       => $addresses['billingAddress']['email'], // the UPO decision is in the SDK
-//            'items'				=> array(
-//				array(
-//					'name'          => 'ShopwaWare_Order',
-//					'price'         => $amount,
-//					'quantity'      => 1
-//				)
-//			),
+            'merchantDetails'   => [
+                'customField2'      => $this->cart->getToken(),
+                'customField4'      => $amount,
+                'customField5'      => $currency,
+            ],
         ];
         
         $resp = $this->nuvei->callRestApi(
@@ -372,6 +411,7 @@ class CheckoutController extends StorefrontController
                 'clientRequestId'   => $resp['clientRequestId'],
                 'transactionType'   => $oo_params['transactionType'], 
                 'userTokenId'       => $oo_params['userTokenId'],
+                'itemsDataHash'     => md5(serialize($items_data)),
                 // the next parameters we will use for the JS response
                 'billingAddress'    => $oo_params['billingAddress'],
                 'currency'          => $oo_params['currency'],
@@ -385,10 +425,11 @@ class CheckoutController extends StorefrontController
     /**
      * @param string $amount
      * @param string $currency
+     * @param array $items_data
      * 
      * @return array
      */
-    private function updateOrder($amount, $currency)
+    private function updateOrder($amount, $currency, $items_data)
     {
         $this->nuvei->createLog('updateOrder()');
         
@@ -434,6 +475,11 @@ class CheckoutController extends StorefrontController
 					'quantity'      => 1
 				)
 			),
+            'merchantDetails'   => [
+                'customField2'      => $this->cart->getToken(),
+                'customField4'      => $amount,
+                'customField5'      => $currency,
+            ],
         ];
         
         // TODO - someday check for rebilling items
@@ -449,23 +495,14 @@ class CheckoutController extends StorefrontController
             && !empty($resp['status'])
             && 'SUCCESS' == $resp['status']
         ) {
-//            $_SESSION['nuvei_order_details'] = [
-//                'sessionToken'      => $resp['sessionToken'],
-//                'orderId'           => $resp['orderId'],
-//                'clientRequestId'   => $resp['clientRequestId'],
-//                // the next parameters we will use for the JS response
-//                'billingAddress'    => $addresses['billingAddress'],
-//                'currency'          => $currency,
-//                'amount'            => currency,
-//            ];
-            
-            $_SESSION['nuvei_order_details']['sessionToken']      = $resp['sessionToken'];
-            $_SESSION['nuvei_order_details']['orderId']           = $resp['orderId'];
-            $_SESSION['nuvei_order_details']['clientRequestId']   = $resp['clientRequestId'];
+            $_SESSION['nuvei_order_details']['sessionToken']    = $resp['sessionToken'];
+            $_SESSION['nuvei_order_details']['orderId']         = $resp['orderId'];
+            $_SESSION['nuvei_order_details']['clientRequestId'] = $resp['clientRequestId'];
+            $_SESSION['nuvei_order_details']['itemsDataHash']   = md5(serialize($items_data));
             // the next parameters we will use for the JS response
-            $_SESSION['nuvei_order_details']['billingAddress']    = $addresses['billingAddress'];
-            $_SESSION['nuvei_order_details']['amount']            = $amount;
-            $_SESSION['nuvei_order_details']['currency']          = $currency;
+            $_SESSION['nuvei_order_details']['billingAddress']  = $addresses['billingAddress'];
+            $_SESSION['nuvei_order_details']['amount']          = $amount;
+            $_SESSION['nuvei_order_details']['currency']        = $currency;
         }
         
         return $resp;
@@ -530,4 +567,73 @@ class CheckoutController extends StorefrontController
             ],
         ];
     }
+    
+    /**
+     * Check if Nuvei GW is selected.
+     * 
+     * @param string $selected_pm
+     * @return boolean
+     */
+    private function isNuveiOrder($selected_pm): bool
+    {
+        // exit
+        if (empty($selected_pm)) {
+            $this->nuvei->createLog('CheckoutController error - selected payment method parameter is empty.');
+            
+            return false;
+        }
+        
+        # Check if selected payment method is Nuvei
+        $criteria = new Criteria();
+        $criteria->addFilter(new MultiFilter(
+            MultiFilter::CONNECTION_AND,
+            [
+                new EqualsFilter('active', 1),
+                new EqualsFilter('id', $selected_pm),
+                new ContainsFilter('handlerIdentifier', 'NuveiCheckout'),
+            ]
+        ));
+        
+        $pm = $this->paymentMethodRepo->search($criteria, $this->context)->first();
+        
+        // exit, the selected PM is not Nuvei or is not active
+        if (empty($pm)) {
+            $this->nuvei->createLog('CheckoutController error - this is not Nuvei order.');
+            
+            return false;
+        }
+        # /Check if selected payment method is Nuvei
+        
+        return true;
+    }
+    
+    private function getItemsBaseData(): array
+    {
+        $items      = $this->cart->getLineItems();
+        $items_data = [];
+        
+        // exit
+        if (empty($items)) {
+            $msg = 'There are no Items in the Cart.';
+            $this->nuvei->createLog($items, $msg);
+            
+            return $items_data;
+        }
+        
+        foreach ($items as $item) {
+            $items_data[$item->getId()] = [
+                'referencedId'  => $item->getReferencedId(),
+                'label'         => $item->getLabel(),
+                'quantity'      => $item->getQuantity(),
+                'type'          => $item->getType(),
+                'totalPrice'    => $item->getPrice()->getTotalPrice(),
+                'children'      => $item->getChildren(),
+            ];
+        }
+        
+        $this->nuvei->createLog($items_data, '$items_data');
+        
+        return $items_data;
+    }
+    
 }

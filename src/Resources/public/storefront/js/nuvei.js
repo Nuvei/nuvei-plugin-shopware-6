@@ -1,7 +1,8 @@
 console.log('nuveiDev');
 
-window.nuveiLastToken = '';
-window.nuveiSdkParams = {};
+window.nuveiLastToken   = '';
+window.nuveiSdkParams   = {};
+window.nuveiTexts       = {};
 
 window.nuveiRenderCheckout = function() {
     console.log('nuveiRenderCheckout');
@@ -32,6 +33,9 @@ window.nuveiRenderCheckout = function() {
 
                 // hide default submit order button
                 jQuery('#confirmFormSubmit').hide();
+
+                // set text translations
+                nuveiTexts = response.texts;
 
                 // call Checkout SDK
                 response.nuveiSdkParams.onResult    = nuveiAfterSdkResponse;
@@ -85,22 +89,35 @@ window.nuveiUpdateCart = function() {
                     var resp = JSON.parse(xmlhttp.response);
                     
                     console.log('status == 200', resp);
-
-                    if(resp.hasOwnProperty('nuveiSdkParams')
-                        && resp.nuveiSdkParams.hasOwnProperty('sessionToken') 
-                        && '' != resp.nuveiSdkParams.sessionToken
-                        && resp.nuveiSdkParams.sessionToken == nuveiLastToken
-                    ) {
-                        console.log('resolve');
-                        resolve();
+                    
+                    if (!resp.hasOwnProperty('success') || 0 == resp.success) {
+                        reject();
+                        
+                        if (!alert(nuveiTexts.cardNeedToRefresh)) {
+                            window.location.reload();
+                        }
+                        
                         return;
                     }
 
-                    // reload the Checkout
-                    console.log('reload checkout because of new session token');
-                    nuveiLastToken = resp.nuveiSdkParams.sessionToken;
-                    checkout(resp.nuveiSdkParams);
+                    resolve();
                     return;
+
+//                    if(resp.hasOwnProperty('nuveiSdkParams')
+//                        && resp.nuveiSdkParams.hasOwnProperty('sessionToken') 
+//                        && '' != resp.nuveiSdkParams.sessionToken
+//                        && resp.nuveiSdkParams.sessionToken == nuveiLastToken
+//                    ) {
+//                        console.log('resolve');
+//                        resolve();
+//                        return;
+//                    }
+//
+//                    // reload the Checkout
+//                    console.log('reload checkout because of new session token');
+//                    nuveiLastToken = resp.nuveiSdkParams.sessionToken;
+//                    checkout(resp.nuveiSdkParams);
+//                    return;
                 }
 
                 if (xmlhttp.status == 400) {
@@ -123,13 +140,19 @@ window.nuveiUpdateCart = function() {
             }
         };
 
-        xmlhttp.open("GET", "/nuvei_checkout?selected_pm="+jQuery('input[name="paymentMethodId"]').val(), true);
+        xmlhttp.open("GET", "/nuvei_prepayment?selected_pm="+jQuery('input[name="paymentMethodId"]').val(), true);
         xmlhttp.send();
     });
 };
 
 window.nuveiAfterSdkResponse = function(resp) {
     console.log('nuveiAfterSdkResponse', resp);
+    
+    // expired session
+    if (resp.hasOwnProperty('session_expired') && resp.session_expired) {
+        window.location.reload();
+        return;
+    }
 
     // on error
     if(typeof resp.result == 'undefined') {

@@ -1,8 +1,14 @@
+/**
+ * Order Details page
+ */
+
+// main function for Order Details page
 function runNuveiScripts() {
-    console.log('runNuveiScripts 2', window.location.hash);
+    console.log('runNuveiScripts');
     
     // this is not the Order Details page
-    if (window.location.toString().search(RegExp('\/order\/detail\/.*\/')) < 0) {
+    if (window.location.toString().search('/order/detail/') < 0) {
+        console.log('Not Orders details page. Stop Nuvei process');
         return;
     }
     
@@ -332,3 +338,91 @@ function nuveiAction(action, orderNumber) {
     );
     xmlhttp.send();
 }
+
+/**
+ * /Order Details page
+ */
+
+///////////////////////////////////////////////////////
+
+/**
+ * Order List page
+ */
+
+function runNuveiOrderListScript() {
+    console.log('runNuveiOrderListScript');
+    
+    // this is not the Order Details page
+    if (window.location.toString().search('/order/index') < 0) {
+        console.log('Not Orders list page. Stop Nuvei process');
+        return;
+    }
+    
+    let tableCells  = document.querySelectorAll('td.sw-data-grid__cell--orderNumber div a');
+    let orderIds    = [];
+    
+    for (let i in tableCells) {
+        if (tableCells[i].textContent) {
+            orderIds.push(Number.parseInt(tableCells[i].textContent));
+        }
+    }
+    
+    console.log(orderIds);
+    
+    var xmlhttp = new XMLHttpRequest();
+    
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+            if (xmlhttp.status == 200) {
+                var response = JSON.parse(xmlhttp.response);
+                console.log('Nuvei response', response);
+                
+                // error or there is no fraud orders
+                if (!response.hasOwnProperty('success') 
+                    || 1 != response.success
+                    || !response.hasOwnProperty('data') 
+                    || '' == response.data
+                ) {
+                    console.log('No Nuvei Fraud Orders.');
+                    return;
+                }
+                
+                // success
+                let fraudOrders = JSON.parse(response.data);
+                let tableRows   = document.querySelectorAll('.sw-order-list__content table tbody tr');
+                
+                for (let i in tableRows) {
+                    try {
+                        let rowOrderNumber = Number.parseInt(tableRows[i]
+                            .querySelector('td.sw-data-grid__cell--orderNumber div a').textContent);
+
+                        // not fraud order
+                        if (fraudOrders.indexOf(rowOrderNumber) < 0) {
+                            continue;
+                        }
+
+                        // mark the order
+                        let paymentStatusCell = tableRows[i].querySelector('td.sw-data-grid__cell--transactions-last\\(\\)-stateMachineState-name div');
+
+                        paymentStatusCell.innerHTML 
+                            += '<span class="sw-label sw-label--appearance-pill sw-label--danger">Fraud?</span>';
+                    }
+                    catch(ex) {
+                        continue;
+                    }
+                }
+            }
+        }
+    };
+    
+    xmlhttp.open(
+        "GET",
+        "/api/nuvei/get_orders_data?orders=" + JSON.stringify(orderIds), 
+        true
+    );
+    xmlhttp.send();
+}
+
+/**
+ * /Order List page
+ */

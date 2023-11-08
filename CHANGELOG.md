@@ -12,7 +12,7 @@
     * In the DMN Controller removed the check for empty Transaction ID and Transaction Type.
     * Lower the time who plugin wait when search for new order.
     * Set different delay time in the DMN logic according the environment.
-    * Save original total and currency and save them as custom fields.
+    * Save original total and currency and save them as custom fields, use them later.
 ```
 
 # 1.0.3

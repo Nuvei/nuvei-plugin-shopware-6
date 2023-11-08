@@ -735,10 +735,13 @@ class DmnController extends StorefrontController
             'payment_method'            => $this->getRequestParam('payment_method'),
             'total_amount'              => number_format($this->getRequestParam('totalAmount'), 2, '.'),
             'currency'                  => $this->getRequestParam('currency'),
+            'original_total'            => $this->getRequestParam('customField4'),
+            'original_currency'         => $this->getRequestParam('customField5'),
             'date'                      => date('Y-m-d H:i:s'),
             'sw_order_id'               => $this->order->getId(),
             'sw_order_number'           => $this->order->orderNumber,
             'sw_transaction_id'         => $this->transaction->getId(),
+            'total_curr_alert'          => $this->totalCurrAlert,
         ];
         
         // save few numbers from SW tables
@@ -766,13 +769,13 @@ class DmnController extends StorefrontController
         $order_amount       = round((float) $this->order->amountTotal, 2);
         
         $gw_data = 'Status: ' . $status
-			. ',<br/> Transaction Type: ' . $transactionType
-			. ',<br/> Transaction ID: ' . $this->getRequestParam('TransactionID')
-			. ',<br/> Auth Code: ' . $this->getRequestParam('AuthCode')
-			. ',<br/> Related Transaction ID: ' . $this->getRequestParam('relatedTransactionId')
-			. ',<br/> Payment Method: ' . $this->getRequestParam('payment_method')
-			. ',<br/> Total Amount: ' . number_format($this->getRequestParam('totalAmount'), 2, '.')
-			. ',<br/> Currency: ' . $this->getRequestParam('currency');
+			. ',<br/>' . $this->trans('Transaction Type: ') . $transactionType
+			. ',<br/>' . $this->trans('Transaction ID: ') . $this->getRequestParam('TransactionID')
+			. ',<br/>' . $this->trans('Auth Code: ') . $this->getRequestParam('AuthCode')
+			. ',<br/>' . $this->trans('Related Transaction ID: ') . $this->getRequestParam('relatedTransactionId')
+			. ',<br/>' . $this->trans('Payment Method: ') . $this->getRequestParam('payment_method')
+			. ',<br/>' . $this->trans('Total Amount: ') . number_format($this->getRequestParam('totalAmount'), 2, '.')
+			. ',<br/>' . $this->trans('Currency: ') . $this->getRequestParam('currency') . '.';
         
         $msg                = $gw_data;
         $orderState         = '';
@@ -832,14 +835,15 @@ class DmnController extends StorefrontController
 
                     $curr_data  = $this->currRepository->search($criteria, $this->context)->first();
 
-                    $this->nuvei->createLog($curr_data->isoCode);
-//                    if (empty($curr_data->isoCode)) {
+                    if ($curr_data->isoCode !== $this->getRequestParam('currency')
+                        && $curr_data->isoCode != $this->getRequestParam('customField5')
+                    ) {
+                        $this->totalCurrAlert = true;
+                    }
                     
-//                    if ($order_curr !== $this->getRequestParam('currency')
-//                        && $order_curr != $this->getRequestParam('customField5')
-//                    ) {
-//                        $this->totalCurrAlert = true;
-//                    }
+                    if ($this->totalCurrAlert) {
+                        $msg .= '<br/>' . $this->trans('Attention! The Order amout/currency is different than the transaction amount/currency.');
+                    }
                 }
                 
                 break;
@@ -847,12 +851,12 @@ class DmnController extends StorefrontController
             case 'ERROR':
             case 'DECLINED':
             case 'FAIL':
-                $error          = ", Message = " . $this->getRequestParam('message');
+                $error          = '<br/>' . $this->trans("Message: ") . $this->getRequestParam('message') . '.';
                 $reason_holders = ['reason', 'Reason', 'paymentMethodErrorReason', 'gwErrorReason'];
                 
                 foreach($reason_holders as $key) {
                     if(!empty($this->getRequestParam($key))) {
-                        $error .= ', Reason: ' . $this->getRequestParam($key);
+                        $error .= '<br/>' . $this->trans('Reason: ') . $this->getRequestParam($key) . '.';
                         break;
                     }
                 }

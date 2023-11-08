@@ -159,16 +159,19 @@ class Nuvei
             throw new \Exception('Logs path not found: ' . $logsPath);
         }
         
-        $d          = $data;
-        $string     = '';
+        $d      = $data;
+        $string = '';
         
         if (is_bool($data)) {
             $d = $data ? 'true' : 'false';
-        } elseif (is_string($data) || is_numeric($data)) {
+        }
+        elseif (is_string($data) || is_numeric($data)) {
             $d = $data;
-        } elseif ('' === $data) {
+        }
+        elseif ('' === $data) {
             $d = 'Data is Empty.';
-        } elseif (is_array($data)) {
+        }
+        elseif (is_array($data)) {
             // do not log accounts if on prod
             if (!$this->sandboxMode) {
                 if (isset($data['userAccountDetails']) && is_array($data['userAccountDetails'])) {
@@ -197,9 +200,8 @@ class Nuvei
             }
 
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
-        } elseif (is_object($data)) {
-            $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
-        } else {
+        }
+        else {
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         

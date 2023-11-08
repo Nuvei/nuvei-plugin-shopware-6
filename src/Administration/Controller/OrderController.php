@@ -2,11 +2,13 @@
 
 namespace Swag\NuveiCheckout\Administration\Controller;
 
+use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
+use Shopware\Core\Kernel;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,19 +27,22 @@ class OrderController extends AbstractController
     private $currRepository;
     private $orderTransactionRepo;
     private $context;
+    private $conn;
     
     public function __construct(
         Nuvei $nuvei,
         EntityRepositoryInterface $orderRepo,
         EntityRepositoryInterface $transactionRepo,
         EntityRepositoryInterface $currRepository,
-        EntityRepositoryInterface $orderTransactionRepo
+        EntityRepositoryInterface $orderTransactionRepo,
+        Connection $conn
     ) {
         $this->nuvei                = $nuvei;
         $this->orderRepo            = $orderRepo;
         $this->transactionRepo      = $transactionRepo;
         $this->currRepository       = $currRepository;
         $this->orderTransactionRepo = $orderTransactionRepo;
+        $this->conn                 = $conn;
     }
     
     /**
@@ -46,6 +51,9 @@ class OrderController extends AbstractController
      * and check for Nuvei notes related to the Transactions.
      * 
      * @Route("/api/nuvei/check_order", name="api.action.nuvei.check_order", defaults={"auth_required"=false, "XmlHttpRequest"=true}, methods={"GET", "POST"})
+     * 
+     * @param Request $request
+     * @param Context $context
      * 
      * @return JsonResponse
      */
@@ -217,6 +225,9 @@ class OrderController extends AbstractController
     /**
      * @Route("/api/nuvei/order_action", name="api.action.nuvei.order_action", defaults={"auth_required"=false, "XmlHttpRequest"=true}, methods={"GET", "POST"})
      * 
+     * @param Request $request
+     * @param Context $context
+     * 
      * @return void|JsonResponse
      */
     public function orderAction(Request $request, Context $context)
@@ -375,6 +386,54 @@ class OrderController extends AbstractController
     }
     
     /**
+     * Receive a list with order numbers as GET parameter.
+     * Then get from the DB the custom_fields for each order and check in it
+     * for Nuvei transactions block. In the block search for total_curr_alert flag.
+     * 
+     *  @Route("/api/nuvei/get_orders_data", name="api.action.nuvei.get_orders_data", defaults={"auth_required"=false, "XmlHttpRequest"=true}, methods={"GET", "POST"})
+     * 
+     * @param Request $request
+     * @param Context $context
+     */
+    public function getOrdersData(Request $request, Context $context)
+    {
+        $orders = json_decode($request->get('orders'));
+        $sql    = 
+            "SELECT order_number, custom_fields FROM `order` "
+            . "WHERE order_number IN (" . implode(',', $orders) . ") "
+                . "AND custom_fields <> '' "
+                ;
+        
+        $fraud_orders   = [];
+        $results        = $this->conn->executeQuery($sql)->fetchAllAssociative();
+        
+        foreach ($results as $order_data) {
+            if (empty($order_data['custom_fields']['nuveiTransactions'])) {
+                continue;
+            }
+            
+            $nuveiTransactions = json_decode($order_data['custom_fields']['nuveiTransactions'], true);
+            
+            if (empty($nuveiTransactions) || !is_array($nuveiTransactions)) {
+                $this->nuvei->createLog($nuveiTransactions, 'Empty transaction data.', 'WARN');
+                continue;
+            }
+            
+            foreach ($nuveiTransactions as $tr => $tr_data) {
+                if (!empty($tr_data['total_curr_alert'])) {
+                    $fraud_orders[] = $order_data['order_number'];
+                    break;
+                }
+            }
+        }
+        
+        exit(json_encode([
+            'success'   => 1,
+            'data'      => json_encode($fraud_orders)
+        ]));
+    }
+    
+    /**
      * Common function, getting Order data by its number.
      * 
      * @param int $order_number
@@ -410,7 +469,7 @@ class OrderController extends AbstractController
     }
     
     /**
-     * @param string $tr_id
+     * @param string $order_id
      * @return object|string
      */
     private function getTransactionByOrderId($order_id)

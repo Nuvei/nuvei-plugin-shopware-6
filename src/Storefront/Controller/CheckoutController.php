@@ -168,6 +168,12 @@ class CheckoutController extends StorefrontController
         $locale_data = $this->localeRepository->search($criteria, $context)->first();
         # /get language
         
+        $useDCC = $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc');
+        
+        if (0 == $_SESSION['nuvei_order_details']['amount']) {
+            $useDCC = 'false';
+        }
+        
         $checkout_params = [
             'sessionToken'              => $resp['sessionToken'],
 			'env'                       => 'sandbox' == $this->sysConfig
@@ -178,7 +184,7 @@ class CheckoutController extends StorefrontController
 			'currency'                  => $_SESSION['nuvei_order_details']['currency'],
 			'amount'                    => (string) $_SESSION['nuvei_order_details']['amount'],
 			'renderTo'                  => '#nuvei_checkout',
-			'useDCC'                    => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc'),
+			'useDCC'                    => $useDCC,
 			'strict'                    => false,
 			'savePM'                    => $save_pm,
 			'showUserPaymentOptions'    => $use_upos,

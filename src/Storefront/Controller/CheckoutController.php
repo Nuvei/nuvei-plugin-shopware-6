@@ -203,7 +203,8 @@ class CheckoutController extends StorefrontController
 			'autoOpenPM'                => (bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiAutoExpandPms'),
 			'logLevel'                  => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkLogLevel'),
 			'maskCvv'                   => true,
-			'i18n'                      => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl'),
+			'i18n'                      => json_decode($this->sysConfig
+                ->get('SwagNuveiCheckout.config.nuveiSdkTransl'), true),
 //			'apmWindowType'             => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiApmWindowType'),
 			'theme'                     => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTheme'),
             'apmConfig'                 => [

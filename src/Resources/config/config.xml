@@ -264,14 +264,8 @@
 			<label>SDK Translations</label>
             
             <placeholder>{
-    "de": { 
-        "doNotHonor": "you dont have enough money",
-        "DECLINE": "declined"
-    },
-    "es": { 
-        "doNotHonor": "you dont have enough money",
-        "DECLINE": "declined"
-    }
+"doNotHonor":"you dont have enough money",
+"DECLINE":"declined"
 }</placeholder>
         </input-field>
 	</card>

@@ -14,6 +14,8 @@
     * Set different delay time in the DMN logic according the environment.
     * Save original total and currency and save them as custom fields, use them later.
     * Disable DCC when Order total is Zero.
+    * Fix for the "SDK translations" setting example.
+    * Added locale for Gpay button.
 ```
 
 # 1.0.3

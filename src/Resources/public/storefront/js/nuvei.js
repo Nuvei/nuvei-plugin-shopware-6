@@ -7,12 +7,32 @@ window.nuveiTexts       = {};
 window.nuveiRenderCheckout = function() {
     console.log('nuveiRenderCheckout');
     
-    var errorMsg    = "Unexpected error, please try different payment method!";
-    var xmlhttp     = new XMLHttpRequest();
+    var errorMsg        = "Unexpected error, please try different payment method!";
+    var xmlhttp         = new XMLHttpRequest();
+    let checkoutMain    = document.querySelector('div.checkout-main');
     
     // add simple blocker
-    if (jQuery('div.checkout-main').find('#nuvei_blocker').length == 0) {
-        jQuery('div.checkout-main').append('<div id="nuvei_blocker" style="position: fixed; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); top: 0px; left: 0px; z-index: 999; padding-left: 50%; padding-top: 50vh;"><img src="/bundles/swagnuveicheckout/storefront/img/rolling.gif" width="100" style="margin-left: -50px" /></div>');
+    if (checkoutMain && !checkoutMain.querySelector('#nuvei_blocker')) {
+        let nuveiBlocker    = document.createElement('div');
+        let nuveiBlockerImg = document.createElement('img');
+        
+        nuveiBlocker.id                     = 'nuvei_blocker';
+        nuveiBlocker.style.position         = 'fixed';
+        nuveiBlocker.style.width            = '100%';
+        nuveiBlocker.style.height           = '100%';
+        nuveiBlocker.style.backgroundColor  = 'rgba(0, 0, 0, 0.5)';
+        nuveiBlocker.style.top              = 0;
+        nuveiBlocker.style.left             = 0;
+        nuveiBlocker.style.zIndex           = 999;
+        nuveiBlocker.style.paddingLeft      = '50%';
+        nuveiBlocker.style.paddingTop       = '50vh';
+        
+        nuveiBlockerImg.src                 = '/bundles/swagnuveicheckout/storefront/img/rolling.gif';
+        nuveiBlockerImg.style.width         = '100px';
+        nuveiBlockerImg.style.marginLeft    = '-50px';
+        
+        nuveiBlocker.appendChild(nuveiBlockerImg);
+        checkoutMain.appendChild(nuveiBlocker);
     }
 
     xmlhttp.onreadystatechange = function() {
@@ -27,12 +47,12 @@ window.nuveiRenderCheckout = function() {
                         alert(response.msg);
                     }
 
-                    jQuery('div.checkout-main').find('#nuvei_blocker').hide();
+                    checkoutMain.querySelector('#nuvei_blocker').style.display = 'none';
                     return;
                 }
 
                 // hide default submit order button
-                jQuery('#confirmFormSubmit').hide();
+//                document.querySelector('#confirmFormSubmit').style.display = 'none';
 
                 // set text translations
                 nuveiTexts = response.texts;
@@ -45,26 +65,28 @@ window.nuveiRenderCheckout = function() {
                 console.log('nuveiSdkParams', response.nuveiSdkParams);
 
                 checkout(response.nuveiSdkParams);
-                jQuery('div.checkout-main').find('#nuvei_blocker').hide();
+                checkoutMain.querySelector('#nuvei_blocker').style.display = 'none';
                 return;
             }
 
             if (xmlhttp.status == 400) {
                 console.log('There was an error 400');
+                
                 alert(errorMsg);
-                jQuery('div.checkout-main').find('#nuvei_blocker').hide();
+                checkoutMain.querySelector('#nuvei_blocker').style.display = 'none';
                 return;
             }
 
             console.log('Nuvei Ajax call unexpected error.');
 
             alert(errorMsg);
-            jQuery('div.checkout-main').find('#nuvei_blocker').hide();
+            checkoutMain.querySelector('#nuvei_blocker').style.display = 'none';
             return;
         }
     };
 
-    xmlhttp.open("GET", "/nuvei_checkout?selected_pm="+jQuery('input[name="paymentMethodId"]').val(), true);
+    xmlhttp.open("GET", "/nuvei_checkout?selected_pm="
+        + document.querySelector('input[name="paymentMethodId"]').value, true);
     xmlhttp.send();
 };
 
@@ -72,14 +94,13 @@ window.nuveiUpdateCart = function() {
     console.log('nuveiUpdateCart');
 
     return new Promise((resolve, reject) => {
-        var errorMsg    = "Payment error, please try again later!";
-        var xmlhttp     = new XMLHttpRequest();
+        var errorMsg        = "Payment error, please try again later!";
+        var xmlhttp         = new XMLHttpRequest();
+        let inputConfirm    = document.querySelector('input.checkout-confirm-tos-checkbox');
         
-        if (jQuery('input.checkout-confirm-tos-checkbox').length == 1
-            && !jQuery('input.checkout-confirm-tos-checkbox').is(':checked')
-        ) {
+        if (inputConfirm && !inputConfirm.checked) {
             reject();
-            jQuery('#confirmFormSubmit').trigger('click');
+//            document.querySelector('#confirmFormSubmit').click();
             return;
         }
 
@@ -102,22 +123,6 @@ window.nuveiUpdateCart = function() {
 
                     resolve();
                     return;
-
-//                    if(resp.hasOwnProperty('nuveiSdkParams')
-//                        && resp.nuveiSdkParams.hasOwnProperty('sessionToken') 
-//                        && '' != resp.nuveiSdkParams.sessionToken
-//                        && resp.nuveiSdkParams.sessionToken == nuveiLastToken
-//                    ) {
-//                        console.log('resolve');
-//                        resolve();
-//                        return;
-//                    }
-//
-//                    // reload the Checkout
-//                    console.log('reload checkout because of new session token');
-//                    nuveiLastToken = resp.nuveiSdkParams.sessionToken;
-//                    checkout(resp.nuveiSdkParams);
-//                    return;
                 }
 
                 if (xmlhttp.status == 400) {
@@ -140,7 +145,8 @@ window.nuveiUpdateCart = function() {
             }
         };
 
-        xmlhttp.open("GET", "/nuvei_prepayment?selected_pm="+jQuery('input[name="paymentMethodId"]').val(), true);
+        xmlhttp.open("GET", "/nuvei_prepayment?selected_pm="
+            + document.querySelector('input[name="paymentMethodId"]').value, true);
         xmlhttp.send();
     });
 };
@@ -167,16 +173,16 @@ window.nuveiAfterSdkResponse = function(resp) {
     ) {
         console.log('Nuvei TrId', resp.transactionId);
         
-        jQuery('body').find('input[name="nuveiTransactionId"]').val(resp.transactionId);
+        document.querySelector('input[name="nuveiTransactionId"]').value = resp.transactionId;
 
         if(resp.hasOwnProperty('ccCardNumber') && '' != resp.ccCardNumber) {
-            jQuery('body').find('input[name="nuveiPaymentMethod"]').val('Credit Card');
+            document.querySelector('input[name="nuveiPaymentMethod"]').value = 'Credit Card';
         }
         else {
-            jQuery('body').find('input[name="nuveiPaymentMethod"]').val('APM');
+            document.querySelector('input[name="nuveiPaymentMethod"]').value = 'APM';
         }
 
-        jQuery('#confirmFormSubmit').trigger('click');
+//        document.querySelector('#confirmFormSubmit').click();
         return;
     }
 

@@ -17,9 +17,11 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
+#[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
  * @author Nuvei
  * 
+ * Next route is for SW 6.4
  * @Route(defaults={"_routeScope"={"storefront"}})
  */
 class CheckoutController extends StorefrontController
@@ -62,7 +64,9 @@ class CheckoutController extends StorefrontController
         $this->sysConfig                    = $sysConfig;
     }
     
+    #[Route(path: '/nuvei_checkout', name: 'frontend.nuveicheckout.checkout', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
+     * Next route is for SW 6.4
      * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      * 
      * @param Request $request
@@ -70,7 +74,7 @@ class CheckoutController extends StorefrontController
      * 
      * @return JsonResponse
      */
-    public function returnCheckoutData(Request $request, Context $context)
+    public function returnCheckoutData(Request $request, Context $context): JsonResponse
     {
         $this->nuvei->createLog('returnCheckoutData');
         
@@ -174,6 +178,8 @@ class CheckoutController extends StorefrontController
             $useDCC = 'false';
         }
         
+        $locale = substr($locale_data->getCode(), 0, 2);
+        
         $checkout_params = [
             'sessionToken'              => $resp['sessionToken'],
 			'env'                       => 'sandbox' == $this->sysConfig
@@ -197,13 +203,18 @@ class CheckoutController extends StorefrontController
 			'email'                     => $_SESSION['nuvei_order_details']['billingAddress']['email'],
 			'payButton'                 => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPayButton'),
 			'showResponseMessage'       => false, // shows/hide the response popups
-			'locale'                    => substr($locale_data->getCode(), 0, 2),
+			'locale'                    => $locale,
 			'autoOpenPM'                => (bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiAutoExpandPms'),
 			'logLevel'                  => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkLogLevel'),
 			'maskCvv'                   => true,
 			'i18n'                      => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl'),
 //			'apmWindowType'             => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiApmWindowType'),
 			'theme'                     => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTheme'),
+            'apmConfig'                 => [
+                'googlePay' => [
+                    'locale' => $locale
+                ]
+            ],
         ];
         
         if (!empty($blocked_pms)) {
@@ -235,7 +246,9 @@ class CheckoutController extends StorefrontController
         ]);
     }
     
+    #[Route(path: '/nuvei_prepayment', name: 'frontend.nuveicheckout.prepayment', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
+     * Next route is for SW 6.4
      * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      * 
      * @param Request $request

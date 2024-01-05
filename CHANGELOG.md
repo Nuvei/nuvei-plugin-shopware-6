@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.1.0
+```
+    * Support for SW 6.5.*.
+```
+
 # 1.0.4
 ```
     * Added Auto-Void logic in case the DMN does not find associated order.
@@ -14,6 +19,8 @@
     * Set different delay time in the DMN logic according the environment.
     * Save original total and currency and save them as custom fields, use them later.
     * Disable DCC when Order total is Zero.
+    * Fix for the "SDK translations" setting example.
+    * Added locale for Gpay button.
 ```
 
 # 1.0.3

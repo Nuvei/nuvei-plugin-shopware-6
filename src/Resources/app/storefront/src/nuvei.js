@@ -13,7 +13,7 @@ export default class NuveiPlugin extends Plugin {
 	onLoad() {
 		console.log('.checkout-main loaded');
         
-        var paymentOptions = jQuery('input[name="paymentMethodId"]');
+        var paymentOptions = document.querySelector('input[name="paymentMethodId"]');
         
         // checkout page, but there are no payment options to select
         if (paymentOptions.length == 0) {
@@ -21,13 +21,27 @@ export default class NuveiPlugin extends Plugin {
         }
         
         // append Nuvei Checkout container
-        jQuery('body').find('.checkout-main').closest('.container')
-            .append('<div id="nuvei_checkout"></div>');
-    
+        let checkoutCont    = document.querySelector('.checkout-main').closest('.container');
+        let nuveiCheckout   = document.createElement('div');
+        
+        nuveiCheckout.id = 'nuvei_checkout';
+        checkoutCont.appendChild(nuveiCheckout);
+        
         // add few Nuvei inputs
-        var submitedForm = jQuery('#confirmFormSubmit').closest('form');
-        submitedForm.append('<input type="hidden" name="nuveiPaymentMethod" value="" />');
-        submitedForm.append('<input type="hidden" name="nuveiTransactionId" value="" />');
+        let submitedFormCont    = document.querySelector('#confirmFormSubmit').closest('form');
+        let inputPaymentMethod  = document.createElement('input');
+        let inputTrId           = document.createElement('input');
+        
+        inputPaymentMethod.type     = 'hidden';
+        inputPaymentMethod.name     = 'nuveiPaymentMethod';
+        inputPaymentMethod.value    = '';
+        
+        inputTrId.type  = 'hidden';
+        inputTrId.name  = 'nuveiTransactionId';
+        inputTrId.value = '';
+        
+        submitedFormCont.appendChild(inputPaymentMethod);
+        submitedFormCont.appendChild(inputTrId);
         
         // temp load external files
         var nuveiScript      = document.createElement('script');

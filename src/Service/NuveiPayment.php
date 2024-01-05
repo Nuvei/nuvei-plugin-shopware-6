@@ -6,13 +6,13 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStat
 use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+//use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Kernel;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
-use Shopware\Core\System\SystemConfig\SystemConfigService;
+//use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Swag\NuveiCheckout\Service\Nuvei;
 
 class NuveiPayment implements SynchronousPaymentHandlerInterface
@@ -27,17 +27,17 @@ class NuveiPayment implements SynchronousPaymentHandlerInterface
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         Nuvei $nuvei,
-        SystemConfigService $sysConfig,
-        EntityRepositoryInterface $stateMachineStateRepository,
         StateMachineRegistry $stateMachineRegistry,
-        EntityRepositoryInterface $orderTransactionRepo
+//        SystemConfigService $sysConfig,
+//        EntityRepositoryInterface $stateMachineStateRepository,
+//        EntityRepositoryInterface $orderTransactionRepo
     ) {
         $this->transactionStateHandler      = $transactionStateHandler;
-        $this->stateMachineStateRepository  = $stateMachineStateRepository;
-        $this->stateMachineRegistry         = $stateMachineRegistry;
-        $this->orderTransactionRepo         = $orderTransactionRepo;
         $this->nuvei                        = $nuvei;
-        $this->sysConfig                    = $sysConfig;
+        $this->stateMachineRegistry         = $stateMachineRegistry;
+//        $this->stateMachineStateRepository  = $stateMachineStateRepository;
+//        $this->orderTransactionRepo         = $orderTransactionRepo;
+//        $this->sysConfig                    = $sysConfig;
         
         $_SESSION['nuvei_order_details'] = [];
     }

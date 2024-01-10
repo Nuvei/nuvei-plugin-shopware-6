@@ -16,6 +16,7 @@
     * Disable DCC when Order total is Zero.
     * Fix for the "SDK translations" setting example.
     * Added locale for Gpay button.
+    * Removed administration js files. Use bundle instead.
 ```
 
 # 1.0.3

@@ -8,7 +8,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
-use Shopware\Core\Kernel;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -401,8 +400,9 @@ class OrderController extends AbstractController
         $sql    = 
             "SELECT order_number, custom_fields FROM `order` "
             . "WHERE order_number IN (" . implode(',', $orders) . ") "
-                . "AND custom_fields <> '' "
-                ;
+                . "AND custom_fields <> '' ";
+        
+        $this->nuvei->createLog($sql);
         
         $fraud_orders   = [];
         $results        = $this->conn->executeQuery($sql)->fetchAllAssociative();

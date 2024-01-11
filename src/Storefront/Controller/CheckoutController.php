@@ -174,7 +174,8 @@ class CheckoutController extends StorefrontController
             $useDCC = 'false';
         }
         
-        $locale = substr($locale_data->getCode(), 0, 2);
+        $locale         = substr($locale_data->getCode(), 0, 2);
+        $nuveiSdkTransl = (string) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl');
         
         $checkout_params = [
             'sessionToken'              => $resp['sessionToken'],
@@ -203,8 +204,7 @@ class CheckoutController extends StorefrontController
 			'autoOpenPM'                => (bool) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiAutoExpandPms'),
 			'logLevel'                  => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkLogLevel'),
 			'maskCvv'                   => true,
-			'i18n'                      => json_decode($this->sysConfig
-                ->get('SwagNuveiCheckout.config.nuveiSdkTransl'), true),
+			'i18n'                      => json_decode($nuveiSdkTransl, true),
 //			'apmWindowType'             => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiApmWindowType'),
 			'theme'                     => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTheme'),
             'apmConfig'                 => [

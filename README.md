@@ -20,7 +20,6 @@ Please, build your storefront and install plugin assets before start using the p
 ```
 bin/build-storefront.sh
 bin/console assets:install
-
 ```
 
 Again in "My Extensions" activate the plugin clicking ot the slider right of the logo and the name. Click on the "..." button on the left and select "Configure". Configure the plugin.

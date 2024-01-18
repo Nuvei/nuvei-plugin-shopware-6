@@ -1,7 +1,7 @@
 import HttpClient from 'src/service/http-client.service'
 import Plugin from 'src/plugin-system/plugin.class';
 
-export default class NuveiPlugin extends Plugin {
+export default class NuveiCheckout extends Plugin {
 	init() {
         // initalize the HttpClient
         this._client = new HttpClient();

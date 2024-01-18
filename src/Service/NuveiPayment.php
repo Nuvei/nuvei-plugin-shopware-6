@@ -6,40 +6,33 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStat
 use Shopware\Core\Checkout\Order\OrderDefinition;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\SynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Cart\SyncPaymentTransactionStruct;
-//use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\Kernel;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
-//use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Swag\NuveiCheckout\Service\Nuvei;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class NuveiPayment implements SynchronousPaymentHandlerInterface
 {
     private $transactionStateHandler;
     private $nuvei;
-    private $sysConfig;
-    private $stateMachineStateRepository;
     private $stateMachineRegistry;
-    private $orderTransactionRepo;
+    private $sessionObj;
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         Nuvei $nuvei,
         StateMachineRegistry $stateMachineRegistry,
-//        SystemConfigService $sysConfig,
-//        EntityRepositoryInterface $stateMachineStateRepository,
-//        EntityRepositoryInterface $orderTransactionRepo
+        RequestStack $requestStack
     ) {
-        $this->transactionStateHandler      = $transactionStateHandler;
-        $this->nuvei                        = $nuvei;
-        $this->stateMachineRegistry         = $stateMachineRegistry;
-//        $this->stateMachineStateRepository  = $stateMachineStateRepository;
-//        $this->orderTransactionRepo         = $orderTransactionRepo;
-//        $this->sysConfig                    = $sysConfig;
+        $this->transactionStateHandler  = $transactionStateHandler;
+        $this->nuvei                    = $nuvei;
+        $this->stateMachineRegistry     = $stateMachineRegistry;
+        $this->sessionObj               = $requestStack->getSession();
         
-        $_SESSION['nuvei_order_details'] = [];
+        $this->sessionObj->set('nuvei_order_details', []);
     }
 
     public function pay(
@@ -57,7 +50,6 @@ class NuveiPayment implements SynchronousPaymentHandlerInterface
             return;
         }
         
-//        $transactionStateHandler    = $this->container->get(OrderTransactionStateHandler::class);
         $context = $salesChannelContext->getContext();
         
         // set something like Pending

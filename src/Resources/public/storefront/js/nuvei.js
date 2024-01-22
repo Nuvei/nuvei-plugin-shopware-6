@@ -52,7 +52,7 @@ window.nuveiRenderCheckout = function() {
                 }
 
                 // hide default submit order button
-//                document.querySelector('#confirmFormSubmit').style.display = 'none';
+                document.querySelector('#confirmFormSubmit').style.display = 'none';
 
                 // set text translations
                 nuveiTexts = response.texts;
@@ -100,11 +100,13 @@ window.nuveiUpdateCart = function() {
         
         if (inputConfirm && !inputConfirm.checked) {
             reject();
-//            document.querySelector('#confirmFormSubmit').click();
+            document.querySelector('#confirmFormSubmit').click();
             return;
         }
 
         xmlhttp.onreadystatechange = function() {
+			console.log('test 2');
+			
             if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                 if (xmlhttp.status == 200) {
                     var resp = JSON.parse(xmlhttp.response);
@@ -182,7 +184,7 @@ window.nuveiAfterSdkResponse = function(resp) {
             document.querySelector('input[name="nuveiPaymentMethod"]').value = 'APM';
         }
 
-//        document.querySelector('#confirmFormSubmit').click();
+        document.querySelector('#confirmFormSubmit').click();
         return;
     }
 

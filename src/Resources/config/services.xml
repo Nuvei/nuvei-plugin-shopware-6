@@ -16,11 +16,9 @@
                       id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
-            <!--<argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>-->
-            <!--<argument type="service" id="state_machine_state.repository"/>-->
-            <!--<argument type="service" id="order_transaction.repository"/>-->
+            <argument type="service" id="request_stack"/>
             
-            <!--<tag name="shopware.payment.method.sync" />-->
+            <tag name="shopware.payment.method.sync" />
         </service>
         
         <!-- Checkout controller to use for Ajax calls. -->
@@ -48,7 +46,6 @@
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="order.repository"/>
             <argument type="service" id="currency.repository"/>
-            <!--<argument type="service" id="state_machine_state.repository"/>-->
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             
             <call method="setContainer">
@@ -64,7 +61,6 @@
             <argument type="service" id="currency.repository"/>
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="Doctrine\DBAL\Connection"/>
-<!--            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>-->
             
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

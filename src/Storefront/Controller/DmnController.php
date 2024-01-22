@@ -4,7 +4,7 @@ namespace Swag\NuveiCheckout\Storefront\Controller;
 
 use Shopware\Core\Checkout\Order\OrderStates;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Kernel;
@@ -42,9 +42,9 @@ class DmnController extends StorefrontController
     public function __construct(
         Nuvei $nuvei, 
         SystemConfigService $systemConfigService,
-        EntityRepositoryInterface $orderTransactionRepo,
-        EntityRepositoryInterface $orderRepo,
-        EntityRepositoryInterface $currRepository,
+        EntityRepository $orderTransactionRepo,
+        EntityRepository $orderRepo,
+        EntityRepository $currRepository,
         StateMachineRegistry $stateMachineRegistry
     ) {
         $this->nuvei                        = $nuvei;
@@ -55,7 +55,7 @@ class DmnController extends StorefrontController
         $this->currRepository               = $currRepository;
     }
     
-    #[Route(path: '/nuvei_dmn/', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true, "csrf_protected" => false], methods: ['GET'])]
+    #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => false], methods: ['GET'])]
     /**
      * Next route is for SW 6.4
      * @Route("/nuvei_dmn/", name="frontend.nuveicheckout.dmn", defaults={"XmlHttpRequest"=true, "csrf_protected"=false}, methods={"GET", "POST"})

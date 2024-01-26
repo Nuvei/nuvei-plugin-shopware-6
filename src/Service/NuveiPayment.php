@@ -12,27 +12,21 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
 use Swag\NuveiCheckout\Service\Nuvei;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class NuveiPayment implements SynchronousPaymentHandlerInterface
 {
     private $transactionStateHandler;
     private $nuvei;
     private $stateMachineRegistry;
-    private $sessionObj;
 
     public function __construct(
         OrderTransactionStateHandler $transactionStateHandler,
         Nuvei $nuvei,
-        StateMachineRegistry $stateMachineRegistry,
-        RequestStack $requestStack
+        StateMachineRegistry $stateMachineRegistry
     ) {
         $this->transactionStateHandler  = $transactionStateHandler;
         $this->nuvei                    = $nuvei;
         $this->stateMachineRegistry     = $stateMachineRegistry;
-        $this->sessionObj               = $requestStack->getSession();
-        
-//        $this->sessionObj->set('nuvei_order_details', []);
     }
 
     public function pay(

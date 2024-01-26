@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Shopware\Core\Checkout\Cart\CartPersister;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\MultiFilter;
@@ -16,9 +17,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
-//use Symfony\Component\HttpFoundation\RequestStack;
-//use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
-//use Symfony\Component\HttpFoundation\Session\Session;
 
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
@@ -45,13 +43,13 @@ class CheckoutController extends StorefrontController
     private $request;
     
     public function __construct(
-        EntityRepository $pmRepository,
-        EntityRepository $currRepository,
-        EntityRepository $customerRepository,
-        EntityRepository $customerAddressRepository,
-        EntityRepository $countryRepository,
-        EntityRepository $langRepository,
-        EntityRepository $localeRepository,
+        EntityRepositoryInterface|EntityRepository $pmRepository,
+        EntityRepositoryInterface|EntityRepository $currRepository,
+        EntityRepositoryInterface|EntityRepository $customerRepository,
+        EntityRepositoryInterface|EntityRepository $customerAddressRepository,
+        EntityRepositoryInterface|EntityRepository $countryRepository,
+        EntityRepositoryInterface|EntityRepository $langRepository,
+        EntityRepositoryInterface|EntityRepository $localeRepository,
         Nuvei $nuvei,
         CartPersister $cartPersister,
         SystemConfigService $sysConfig
@@ -270,7 +268,7 @@ class CheckoutController extends StorefrontController
         $this->request  = $request;
         $is_nuvei       = $this->isNuveiOrder($request->query->get('selected_pm'));
         
-//        $this->nuvei->createLog($this->request->getSession()->all(), 'getSession all');
+        $this->nuvei->createLog($this->request->getSession()->all(), 'getSession all');
         
         // exit
         if (!$is_nuvei) {
@@ -285,8 +283,8 @@ class CheckoutController extends StorefrontController
         $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
         $nuvei_order_details    = $this->request->getSession()->get('nuvei_order_details', []);
-        $session_data           = $nuvei_order_details['itemsDataHash'] ?? [];
-        $current_data           = $this->getItemsBaseData();
+        $session_data   = $nuvei_order_details['itemsDataHash'] ?? [];
+        $current_data   = $this->getItemsBaseData();
         
         // success
         if ($session_data == md5(serialize($current_data))) {

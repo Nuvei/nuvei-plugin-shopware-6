@@ -264,8 +264,8 @@
 			<label>SDK Translations</label>
             
             <placeholder>{
-"doNotHonor": "you dont have enough money",
-"DECLINE": "declined"
+"doNotHonor":"you dont have enough money",
+"DECLINE":"declined"
 }</placeholder>
 
             <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/ui-customization/#text-and-translation&quot; target=&quot;_blank&quot;&gt;Check the Documentation&lt;/a&gt;</helpText>

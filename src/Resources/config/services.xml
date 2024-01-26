@@ -16,7 +16,6 @@
                       id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
-            <argument type="service" id="request_stack"/>
             
             <tag name="shopware.payment.method.sync" />
         </service>

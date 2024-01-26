@@ -4,11 +4,11 @@ namespace Swag\NuveiCheckout\Administration\Controller;
 
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
-//use Shopware\Core\Kernel;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @author Nuvei
+ * 
  * @Route (defaults={"_routeScope"={"api"}})
  */
 class OrderController extends AbstractController
@@ -31,10 +32,10 @@ class OrderController extends AbstractController
     
     public function __construct(
         Nuvei $nuvei,
-        EntityRepositoryInterface $orderRepo,
-        EntityRepositoryInterface $transactionRepo,
-        EntityRepositoryInterface $currRepository,
-        EntityRepositoryInterface $orderTransactionRepo,
+        EntityRepository|EntityRepositoryInterface $orderRepo,
+        EntityRepository|EntityRepositoryInterface $transactionRepo,
+        EntityRepository|EntityRepositoryInterface $currRepository,
+        EntityRepository|EntityRepositoryInterface $orderTransactionRepo,
         Connection $conn
     ) {
         $this->nuvei                = $nuvei;

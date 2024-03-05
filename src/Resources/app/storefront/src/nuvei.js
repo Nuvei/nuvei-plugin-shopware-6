@@ -40,7 +40,18 @@ export default class NuveiPlugin extends Plugin {
                 console.log('nuvei checkout loaded');
                 nuveiRenderCheckout();
             };
-            nuveiSdk.src      = 'https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js';
+            
+            nuveiSdk.src = 'https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js';
+            
+            try {
+                if ('shopware6automation.gw-4u.com' === window.location.host) {
+                    nuveiSdk.src = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
+                }
+            }
+            catch (_exception) {
+                console.log('Nuvei Error', _exception);
+            }
+            
             document.head.appendChild(nuveiSdk);
         };
         nuveiScript.src      = '/bundles/swagnuveicheckout/storefront/js/nuvei.js';

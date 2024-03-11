@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.0.4-p1
+```
+    * Added Tag SDK URL for test cases.
+```
+
 # 1.0.4
 ```
     * Added Auto-Void logic in case the DMN does not find associated order.

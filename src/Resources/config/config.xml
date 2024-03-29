@@ -218,6 +218,23 @@
             <helpText>Recommended value is "Yes".</helpText>
 		</input-field>
         
+        <input-field type="single-select">
+			<name>nuveiMaskLog</name>
+			<label>Mask users details in the log</label>
+            
+            <options>
+				<option>
+					<id>yes</id>
+					<name>Yes</name>
+				</option>
+				<option>
+					<id>no</id>
+					<name>No</name>
+				</option>
+			</options>
+            
+            <defaultValue>yes</defaultValue>
+		</input-field>
         
         <input-field type="single-select">
 			<name>nuveiSdkLogLevel</name>

@@ -3,6 +3,12 @@
 # 1.1.0
 ```
     * Support for SW 6.5.*.
+    * Add option to mask/unmask user details in the log.
+```
+
+# 1.0.4-p1
+```
+    * Added Tag SDK URL for test cases.
 ```
 
 # 1.0.4

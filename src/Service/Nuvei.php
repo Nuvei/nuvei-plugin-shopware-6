@@ -195,7 +195,7 @@ class Nuvei
             if ($mask_details) {
                 // clean possible objects inside array
                 $data = json_decode(json_encode($data), true);
-
+                
                 array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
             }
             
@@ -229,7 +229,7 @@ class Nuvei
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         else {
-            if ($mask_details) {
+            if ($mask_details && is_object($data)) {
                 // clean possible objects inside array
                 $data = json_decode(json_encode($data), true);
 

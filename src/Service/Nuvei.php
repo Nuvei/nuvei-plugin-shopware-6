@@ -229,12 +229,12 @@ class Nuvei
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         else {
-//            if ($mask_details) {
-//                // clean possible objects inside array
-//                $data = json_decode(json_encode($data), true);
-//
-//                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
-//            }
+            if ($mask_details) {
+                // clean possible objects inside array
+                $data = json_decode(json_encode($data), true);
+
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+            }
             
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
@@ -536,7 +536,7 @@ class Nuvei
 			return $device_details;
 		}
 		
-		$user_agent = strtolower(filter_var($_SERVER['HTTP_USER_AGENT'], FILTER_SANITIZE_STRING));
+		$user_agent = strtolower(filter_var($_SERVER['HTTP_USER_AGENT']));
 		
 		if (empty($user_agent)) {
 			$device_details['Warning'] = 'Probably the merchant Server has problems with PHP filter_var function!';
@@ -746,9 +746,9 @@ class Nuvei
             if (in_array($key, $fields['ips'])) {
                 $value = rtrim(long2ip(ip2long($value) & (~255)), "0")."x";
             } elseif (in_array($key, $fields['names'])) {
-                $value = substr($value, 0, 1) . '****';
+                $value = mb_substr($value, 0, 1) . '****';
             } elseif (in_array($key, $fields['emails'])) {
-                $value = '****' . substr($value, 4);
+                $value = '****' . mb_substr($value, 4);
             } elseif (in_array($key, $fields['address'])
                 || in_array($key, $fields['others'])
             ) {

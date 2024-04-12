@@ -16,14 +16,12 @@ use Shopware\Storefront\Controller\StorefrontController;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+//use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
  * @author Nuvei
- * 
- * Next route is for SW 6.4
- * @Route(defaults={"_routeScope"={"storefront"}})
  */
 class DmnController extends StorefrontController
 {
@@ -58,7 +56,7 @@ class DmnController extends StorefrontController
     
     #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
-     * Next route is for SW 6.4
+     * Legacy route for SW 6.4
      * @Route("/nuvei_dmn/", name="frontend.nuveicheckout.dmn", defaults={"XmlHttpRequest"=true, "csrf_protected"=false}, methods={"GET", "POST"})
      */
     public function getDmn(Request $request, Context $context): JsonResponse

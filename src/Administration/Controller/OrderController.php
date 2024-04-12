@@ -8,17 +8,17 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
-use Shopware\Core\Framework\Routing\Annotation\RouteScope;
+//use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+//use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
+#[Route(defaults: ['_routeScope' => ['api']])]
 /**
  * @author Nuvei
- * 
- * @Route (defaults={"_routeScope"={"api"}})
  */
 class OrderController extends AbstractController
 {
@@ -46,6 +46,7 @@ class OrderController extends AbstractController
         $this->conn                 = $conn;
     }
     
+    #[Route(path: '/api/nuvei/check_order', name: 'api.action.nuvei.check_order', defaults: ['auth_required' => false, 'XmlHttpRequest' => true], methods: ['POST', 'GET'])]
     /**
      * We do Ajax request to this method when Order datils page is loaded.
      * Here we decide is this a Nuvei Order, what actions we can do over it
@@ -223,13 +224,14 @@ class OrderController extends AbstractController
         ]);
     }
 
+    #[Route(path: '/api/nuvei/order_action', name: 'api.action.nuvei.order_action', defaults: ['auth_required' => false, 'XmlHttpRequest' => true], methods: ['POST', 'GET'])]
     /**
-     * @Route("/api/nuvei/order_action", name="api.action.nuvei.order_action", defaults={"auth_required"=false, "XmlHttpRequest"=true}, methods={"GET", "POST"})
-     * 
      * @param Request $request
      * @param Context $context
      * 
      * @return void|JsonResponse
+     * 
+     * @Route("/api/nuvei/order_action", name="api.action.nuvei.order_action", defaults={"auth_required"=false, "XmlHttpRequest"=true}, methods={"GET", "POST"})
      */
     public function orderAction(Request $request, Context $context)
     {
@@ -386,6 +388,7 @@ class OrderController extends AbstractController
         ]);
     }
     
+    #[Route(path: '/api/nuvei/get_orders_data', name: 'api.action.nuvei.get_orders_data', defaults: ['auth_required' => false, 'XmlHttpRequest' => true], methods: ['POST', 'GET'])]
     /**
      * Receive a list with order numbers as GET parameter.
      * Then get from the DB the custom_fields for each order and check in it

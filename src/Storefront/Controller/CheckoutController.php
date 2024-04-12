@@ -6,7 +6,8 @@ use Shopware\Storefront\Controller\StorefrontController;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+//use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Shopware\Core\Checkout\Cart\CartPersister;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -21,9 +22,6 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
  * @author Nuvei
- * 
- * Next route is for SW 6.4
- * @Route(defaults={"_routeScope"={"storefront"}})
  */
 class CheckoutController extends StorefrontController
 {
@@ -68,13 +66,13 @@ class CheckoutController extends StorefrontController
     
     #[Route(path: '/nuvei_checkout', name: 'frontend.nuveicheckout.checkout', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
-     * Next route is for SW 6.4
-     * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
-     * 
      * @param Request $request
      * @param Context $context
      * 
      * @return JsonResponse
+     * 
+     * Legacy route for SW 6.4
+     * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      */
     public function returnCheckoutData(Request $request, Context $context): JsonResponse
     {
@@ -252,13 +250,13 @@ class CheckoutController extends StorefrontController
     
     #[Route(path: '/nuvei_prepayment', name: 'frontend.nuveicheckout.prepayment', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
-     * Next route is for SW 6.4
-     * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
-     * 
      * @param Request $request
      * @param Context $context
      * 
      * @return JsonResponse
+     * 
+     * Legacy route for SW 6.4
+     * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      */
     public function prePaymentCheck(Request $request, Context $context)
     {

@@ -1,4 +1,4 @@
-console.log('nuveiDev');
+console.log('nuvei public script loaded');
 
 window.nuveiLastToken   = '';
 window.nuveiSdkParams   = {};
@@ -105,8 +105,6 @@ window.nuveiUpdateCart = function() {
         }
 
         xmlhttp.onreadystatechange = function() {
-			console.log('test 2');
-			
             if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                 if (xmlhttp.status == 200) {
                     var resp = JSON.parse(xmlhttp.response);

@@ -52,7 +52,7 @@
             </call>
         </service>
         
-        <!-- Nuvei Admin contrller -->
+        <!-- Nuvei Admin controller -->
         <service id="Swag\NuveiCheckout\Administration\Controller\OrderController" public="true">
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
             <argument type="service" id="order.repository"/>

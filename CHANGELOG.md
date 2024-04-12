@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.2.0
+```
+    * Support for SW 6.6.*.
+```
+
 # 1.1.0
 ```
     * Support for SW 6.5.*.

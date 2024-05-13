@@ -44,7 +44,8 @@ class DmnController extends StorefrontController
         EntityRepository|EntityRepositoryInterface $orderTransactionRepo,
         EntityRepository|EntityRepositoryInterface $orderRepo,
         EntityRepository|EntityRepositoryInterface $currRepository,
-        StateMachineRegistry $stateMachineRegistry
+        StateMachineRegistry $stateMachineRegistry,
+        EntityRepository|EntityRepositoryInterface $stateMachineStateRepository
     ) {
         $this->nuvei                        = $nuvei;
         $this->systemConfigService          = $systemConfigService;
@@ -52,6 +53,7 @@ class DmnController extends StorefrontController
         $this->orderRepo                    = $orderRepo;
         $this->stateMachineRegistry         = $stateMachineRegistry;
         $this->currRepository               = $currRepository;
+        $this->stateMachineStateRepository  = $stateMachineStateRepository;
     }
     
     #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
@@ -412,25 +414,21 @@ class DmnController extends StorefrontController
      */
     private function dmnSaleAuth($tr_id)
     {
-        $this->nuvei->createLog('dmnSaleAuth()');
+        $this->nuvei->createLog($tr_id, 'dmnSaleAuth(), nuveiTrId.');
 
-        $order_id   = '';
-        $tries      = 0;
-        $max_tries  = 'sandbox' == $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMode') ? 10 : 4;
-        $sleep_time = 3;
+        $order_id       = '';
+        $orderState     = '';
+        $tries          = 0;
+        $max_tries      = 'sandbox' == $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMode') ? 10 : 4;
+        $sleep_time     = 3;
 		
-        // for the transaction
+        // first get the transaction, by Nuvei Transaction ID
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.nuveiTrId', $tr_id));
         
-        // for the order
-        $ordCr = new Criteria();
-        
-        $this->nuvei->createLog($tr_id, 'Search for Transaction with customFields.nuveiTrId');
-        
         do {
             $tries++;
-            $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->first();
+            $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
             
             if (is_object($this->transaction) && method_exists($this->transaction, 'getOrderId')) {
                 $order_id = $this->transaction->getOrderId();
@@ -442,7 +440,6 @@ class DmnController extends StorefrontController
                     ],
                     'Found Transaction by Nuvei Tr ID'
                 );
-                
             }
             
             if(empty($order_id)) {
@@ -451,25 +448,32 @@ class DmnController extends StorefrontController
             }
             else {
                 // check for slow saving process
+                // for the order
+                $ordCr = new Criteria();
                 $ordCr->addFilter(new EqualsFilter('id', $order_id));
-                
                 $this->order    = $this->orderRepo->search($ordCr, $this->context)->first();
-                $orderState     = $this->order->stateMachineState->technicalName;
+                
+                // now get the Order State
+                $ordStateCr = new Criteria();
+                $ordStateCr->addFilter(new EqualsFilter('id', $this->order->stateId));
+                $stateResult    = $this->stateMachineStateRepository->search($ordStateCr, $this->context)->first();
+                $orderState     = $stateResult->technicalName;
                 
                 $this->nuvei->createLog(
                     [
-                        'order state'   => $this->order->stateMachineState->name,
+                        'order state'   => $orderState,
                         'order id'      => $order_id,
                         'order number'  => $this->order->orderNumber,
+                        'order'         => $this->order,
                     ],
                     'Found Order by Transaction'
                 );
-                
+                die;
                 // the first Nuvei state of an order must be STATE_IN_PROGRESS
                 // default State for the Order is Open
                 $this->nuvei->createLog($this->order->stateMachineState->name, 'Check the Order State:');
                 
-                if (OrderStates::STATE_OPEN == $this->order->stateMachineState->technicalName) {
+                if (OrderStates::STATE_OPEN == $orderState) {
                     $this->nuvei->createLog(
                         [
                             '$orderState' => $orderState,
@@ -486,13 +490,9 @@ class DmnController extends StorefrontController
         while($tries <= $max_tries && empty($order_id));
         
         // exit, already Complete or Cancelled order
-        if (in_array(
-            $this->order->stateMachineState->technicalName,
-            [OrderStates::STATE_COMPLETED, OrderStates::STATE_CANCELLED]
-        )) {
+        if (in_array($orderState, [OrderStates::STATE_COMPLETED, OrderStates::STATE_CANCELLED])) {
             $msg = 'This Order is alaedy Completed or Cancelled.';
-
-            $this->nuvei->createLog($this->order->stateMachineState->technicalName, $msg);
+            $this->nuvei->createLog($orderState, $msg);
 
             return [
                 'message' => $msg
@@ -585,16 +585,26 @@ class DmnController extends StorefrontController
         
         $this->order    = $this->orderRepo->search($ordCr, $this->context)->first();
         $order_id       = $this->order->id;
+        $state_id       = $this->order->stateId;
         
-        // for the transaction
+        $this->nuvei->createLog([$order_id, $state_id]);
+        
+        // get the Transaction
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('orderId', $order_id));
         
         $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
         
+        // get the State for the Transaction
+        $trCr = new Criteria();
+        $trCr->addFilter(new EqualsFilter('id', $this->transaction->stateId));
+        $trResult       = $this->stateMachineStateRepository->search($trCr, $this->context)->first();
+        $trStateName    = $trResult->technicalName;
+        
         // cases when can not accept this transaction type
         if ('Settle' == $transactionType
-            && 'authorized' != $this->transaction->stateMachineState->technicalName
+//            && 'authorized' != $this->transaction->stateMachineState->technicalName
+            && 'authorized' != $trStateName
         ) {
             $msg = 'Can not apply Settle on transaction with State different than Authorized.';
 
@@ -606,24 +616,28 @@ class DmnController extends StorefrontController
         
         if ('Void' == $transactionType
             && !in_array(
-                $this->transaction->stateMachineState->technicalName,
+//                $this->transaction->stateMachineState->technicalName,
+                $trStateName,
                 ['authorized', 'paid']
             )
         ) {
             $msg = 'Can not apply Void on transaction with State different than Authorized and Paid.';
 
-            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+//            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+            $this->nuvei->createLog($trStateName, $msg);
             return [
                 'message' => $msg
             ];
         }
         
         if (in_array($transactionType, ['Refund', 'Credit'])
-            && 'paid' != $this->transaction->stateMachineState->technicalName
+//            && 'paid' != $this->transaction->stateMachineState->technicalName
+            && 'paid' != $trStateName
         ) {
             $msg = 'Can not apply Refund on transaction with State different than Paid.';
 
-            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+//            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+            $this->nuvei->createLog($trStateName, $msg);
             return [
                 'message' => $msg
             ];

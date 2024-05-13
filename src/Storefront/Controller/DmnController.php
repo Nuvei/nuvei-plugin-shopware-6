@@ -610,9 +610,17 @@ class DmnController extends StorefrontController
                 ['authorized', 'paid']
             )
         ) {
-            $msg = 'Can not apply Void on transaction with State different than Authorized and Paid.';
+            $msg = 'Can not apply Void on transaction with State different than Authorized or Paid.';
 
-            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+            $this->nuvei->createLog(
+                [
+                    (array) $this->transaction,
+                    $this->transaction->stateMachineState,
+                    $this->transaction->stateMachineState->technicalName,
+                ],
+                $msg
+            );
+            
             return [
                 'message' => $msg
             ];

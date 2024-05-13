@@ -39,7 +39,7 @@
         
         <input-field type="single-select">
 			<name>nuveiHash</name>
-			<label>Hash type *</label>
+			<label>Hash Type *</label>
 			<options>
 				<option>
 					<id>sha256</id>
@@ -82,7 +82,7 @@
         
         <input-field type="single-select">
             <name>nuveiSdkTheme</name>
-			<label>SDK theme</label>
+			<label>SDK Theme</label>
             
             <options>
                 <option>
@@ -104,7 +104,7 @@
         
         <input-field type="single-select">
 			<name>nuveiDcc</name>
-			<label>Use currency conversion</label>
+			<label>Use Currency Conversion</label>
             
 			<options>
                 <option>
@@ -135,19 +135,19 @@
         
         <input-field>
 			<name>nuveiPmBlockList</name>
-			<label>Block Payment methods</label>
+			<label>Block Payment Methods</label>
             
             <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/payment-customization/#apm-whitelisting-blacklisting&quot; target=&quot;_blank&quot;&gt;Check the Documentation&lt;/a&gt; and/or ask our TechSupport/Integration Teams for help.</helpText>
 		</input-field>
         
         <input-field type="bool">
 			<name>nuveiUseUpos</name>
-			<label>Allow client to use UPOs</label>
+			<label>Allow Clients to use UPOs</label>
 		</input-field>
         
         <input-field type="single-select">
 			<name>nuveiPayButton</name>
-			<label>Choose the Text on the Pay button</label>
+			<label>Choose the Text on the Pay Button</label>
             
 			<options>
 				<option>
@@ -165,38 +165,12 @@
         
         <input-field type="bool">
 			<name>nuveiAutoExpandPms</name>
-			<label>Auto expand PMs</label>
+			<label>Auto-expand PMs</label>
             
             <defaultValue>true</defaultValue>
             
             <helpText>Turn it On for better user experience.</helpText>
 		</input-field>
-        
-<!--        <input-field type="single-select">
-			<name>nuveiApmWindowType</name>
-			<label>APMs window type</label>
-            
-            <options>
-				<option>
-					<id></id>
-					<name>Popup</name>
-				</option>
-				
-                <option>
-					<id>newTab</id>
-					<name>New tab</name>
-				</option>
-                
-                <option>
-					<id>redirect</id>
-					<name>Redirect</name>
-				</option>
-			</options>
-            
-            <defaultValue></defaultValue>
-            
-            <helpText>Recommended value is "Yes".</helpText>
-		</input-field>-->
         
         <input-field type="single-select">
 			<name>nuveiAutoCloseApmPopup</name>

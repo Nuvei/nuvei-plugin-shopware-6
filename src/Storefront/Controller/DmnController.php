@@ -453,11 +453,16 @@ class DmnController extends StorefrontController
                 $ordCr->addFilter(new EqualsFilter('id', $order_id));
                 $this->order = $this->orderRepo->search($ordCr, $this->context)->first();
                 
-                // now get the Order State
-                $ordStateCr = new Criteria();
-                $ordStateCr->addFilter(new EqualsFilter('id', $this->order->stateId));
-                $stateResult    = $this->stateMachineStateRepository->search($ordStateCr, $this->context)->first();
-                $orderState     = $stateResult->technicalName;
+                // first try to get Order State
+                if (is_object($this->order->stateMachineState) 
+                    && !empty($this->order->stateMachineState->technicalName)
+                ) {
+                    $orderState = $this->order->stateMachineState->technicalName;
+                }
+                // second try
+                else {
+                    $orderState = $this->getStateById($this->order->stateId);
+                }
                 
                 $this->nuvei->createLog(
                     [
@@ -475,7 +480,6 @@ class DmnController extends StorefrontController
                 if (OrderStates::STATE_OPEN == $orderState) {
                     $this->nuvei->createLog(
                         [
-                            '$orderState' => $orderState,
                             'orderNumber' => $this->order->orderNumber,
                         ],
                         'The Order State must be in_progress. Wait few seconds and check again.'
@@ -589,11 +593,16 @@ class DmnController extends StorefrontController
         $criteria->addFilter(new EqualsFilter('orderId', $order_id));
         $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
         
-        // get the State for the Transaction
-        $trCr = new Criteria();
-        $trCr->addFilter(new EqualsFilter('id', $this->transaction->stateId));
-        $trResult       = $this->stateMachineStateRepository->search($trCr, $this->context)->first();
-        $trStateName    = $trResult->technicalName;
+        // first try to get the State
+        if (is_object($this->transaction->stateMachineStat)
+            && isset($this->transaction->stateMachineState->technicalName)
+        ) {
+            $trStateName = $this->transaction->stateMachineState->technicalName;
+        }
+        // second try
+        else {
+            $trStateName = $this->getStateById($this->transaction->stateId);
+        }
         
         // cases when can not accept this transaction type
         if ('Settle' == $transactionType && 'authorized' != $trStateName) {
@@ -605,8 +614,7 @@ class DmnController extends StorefrontController
             ];
         }
         
-        if ('Void' == $transactionType
-            && !in_array($trStateName, ['authorized', 'paid'])) {
+        if ('Void' == $transactionType && !in_array($trStateName, ['authorized', 'paid'])) {
             $msg = 'Can not apply Void on transaction with State different than Authorized and Paid.';
             $this->nuvei->createLog($trStateName, $msg);
             
@@ -951,6 +959,26 @@ class DmnController extends StorefrontController
         }
         
         return $default;
+    }
+    
+    /**
+     * A help function.
+     * 
+     * @param string $id The State ID
+     * @return string
+     */
+    private function getStateById($id)
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('id', $id));
+
+        $stateResult = $this->stateMachineStateRepository->search($criteria, $this->context)->first();
+        
+        if (isset($stateResult->technicalName)) {
+            return $stateResult->technicalName;
+        }
+        
+        return '';
     }
     
 }

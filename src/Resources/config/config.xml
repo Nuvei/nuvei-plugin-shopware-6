@@ -22,12 +22,12 @@
             <defaultValue>sandbox</defaultValue>
 		</input-field>
         
-		<input-field type="password">
+		<input-field>
 			<name>nuveiMerchantId</name>
 			<label>Merchant ID *</label>
 		</input-field>
         
-		<input-field type="password">
+		<input-field>
 			<name>nuveiMerchantSiteId</name>
 			<label>Merchant Site ID *</label>
 		</input-field>

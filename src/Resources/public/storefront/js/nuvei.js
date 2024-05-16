@@ -85,8 +85,9 @@ window.nuveiRenderCheckout = function() {
         }
     };
 
-    xmlhttp.open("GET", "/nuvei_checkout?selected_pm="
-        + document.querySelector('input[name="paymentMethodId"]').value, true);
+	let paymentMethod = document.querySelector('input[name="paymentMethodId"]');
+	
+    xmlhttp.open("GET", "/nuvei_checkout?selected_pm=" + (paymentMethod ? paymentMethod.value : ''), true);
     xmlhttp.send();
 };
 
@@ -145,8 +146,9 @@ window.nuveiUpdateCart = function() {
             }
         };
 
-        xmlhttp.open("GET", "/nuvei_prepayment?selected_pm="
-            + document.querySelector('input[name="paymentMethodId"]').value, true);
+		let paymentMethod = document.querySelector('input[name="paymentMethodId"]');
+
+        xmlhttp.open("GET", "/nuvei_prepayment?selected_pm=" + (paymentMethod ? paymentMethod.value : ''), true);
         xmlhttp.send();
     });
 };

@@ -355,8 +355,15 @@ class CheckoutController extends StorefrontController
         $transactionType    = (float) $amount == 0 
             ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction');
         
-        if ($open_order_details['transactionType'] != $transactionType
-            || $open_order_details['userTokenId'] != @$addresses['billingAddress']['email']
+        // check for few mandatory fields
+        if (!isset($open_order_details['transactionType'])
+            || !isset($open_order_details['userTokenId'])
+            || !isset($addresses['billingAddress']['email'])
+        ) {
+            $try_update_order = false;
+        }
+        elseif ($open_order_details['transactionType'] != $transactionType
+            || $open_order_details['userTokenId'] != $addresses['billingAddress']['email']
         ) {
             $this->nuvei->createLog(
                 [

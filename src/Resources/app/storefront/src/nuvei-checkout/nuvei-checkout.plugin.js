@@ -16,7 +16,7 @@ export default class NuveiCheckout extends Plugin {
         var paymentOptions = document.querySelector('input[name="paymentMethodId"]');
         
         // checkout page, but there are no payment options to select
-        if (paymentOptions.length == 0) {
+        if (paymentOptions && paymentOptions.length == 0) {
             return;
         }
         
@@ -27,7 +27,14 @@ export default class NuveiCheckout extends Plugin {
         nuveiCheckout.id = 'nuvei_checkout';
         checkoutCont.appendChild(nuveiCheckout);
         
-        // add few Nuvei inputs
+        // check if #confirmFormSubmit exists
+		let confirmFormSubmit	= document.querySelector('#confirmFormSubmit');
+		
+		if (!confirmFormSubmit) {
+			return;
+		}
+		
+		// add few Nuvei inputs
         let submitedFormCont    = document.querySelector('#confirmFormSubmit').closest('form');
         let inputPaymentMethod  = document.createElement('input');
         let inputTrId           = document.createElement('input');

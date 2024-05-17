@@ -3,6 +3,7 @@
 # 1.2.0
 ```
     * Support for SW 6.6.*.
+    * Changed sourceApplication parameter.
 ```
 
 # 1.1.0

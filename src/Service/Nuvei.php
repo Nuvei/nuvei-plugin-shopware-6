@@ -122,7 +122,7 @@ class Nuvei
     private $restApiProdUrl          = 'https://secure.safecharge.com/ppp/api/v1/';
     private $saveLogs                = true;
     private $sandboxMode             = true;
-    private $nuveiSourceApplication  = 'Shopwre_Plugin';
+    private $nuveiSourceApplication  = 'SHOPWARE_PLUGIN';
     
     private $devices     = array('iphone', 'ipad', 'android', 'silk', 'blackberry', 'touch', 'linux', 'windows', 'mac');
     private $browsers    = array('ucbrowser', 'firefox', 'chrome', 'opera', 'msie', 'edge', 'safari', 'blackberry', 'trident');

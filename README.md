@@ -1,7 +1,7 @@
 # Nuvei Simply Connect for ShopWare 6
 
 ## Requirements
-Shopware 6.4.* and up.  
+Shopware 6.5.* and up.  
 Enabled DMN notifications into the merchant account.  
 Public access to the plugin notification URL - site_domain/nuvei_dmn/.
 
@@ -19,7 +19,7 @@ Please, build your storefront and your administration before start using the plu
 ```
 php bin/console cache:clear
 php bin/console assets:install
-bin/build-storefront.sh
+php bin/console theme:compile
 ```
 Again in "My Extensions" activate the plugin clicking ot the slider right of the logo and the name. Click on the "..." button on the left and select "Configure". Configure the plugin.
 

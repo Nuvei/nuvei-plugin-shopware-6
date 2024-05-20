@@ -4,6 +4,8 @@
 ```
     * Support for SW 6.6.*.
     * Changed sourceApplication parameter.
+    * The compiled JS files for the frontstore are included.
+    * This version does not support ShopWare 6.4.*.
 ```
 
 # 1.1.0

@@ -6,7 +6,6 @@ use Shopware\Storefront\Controller\StorefrontController;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-//use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Attribute\Route;
 use Shopware\Core\Checkout\Cart\CartPersister;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;

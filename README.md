@@ -3,6 +3,7 @@
 ## Requirements
 Shopware 6.5.* and up.  
 Enabled DMN notifications into the merchant account.  
+Set DMN notifications timeout to be at least 30 seconds.  
 Public access to the plugin notification URL - site_domain/nuvei_dmn/.
 
 ## Description
@@ -26,4 +27,4 @@ Again in "My Extensions" activate the plugin clicking ot the slider right of the
 Add the new payment provider into the the used sale channel in "Sales Channels" menu.
 
 ## Support
-Please, contact out Tech-Support team (tech-support@nuvei.com) in case of questions and difficulties.
+Please, contact out Tech-Support team (tech-support@nuvei.com) in case of questions and difficulties. Check also our [Documentation](https://docs.nuvei.com/documentation/plugins-docs/shopware-6/).

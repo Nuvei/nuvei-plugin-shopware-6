@@ -56,7 +56,7 @@ class DmnController extends StorefrontController
         $this->stateMachineStateRepository  = $stateMachineStateRepository;
     }
     
-    #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
+    #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true], methods: ['GET', 'POST'])]
     /**
      * Legacy route for SW 6.4
      * @Route("/nuvei_dmn/", name="frontend.nuveicheckout.dmn", defaults={"XmlHttpRequest"=true, "csrf_protected"=false}, methods={"GET", "POST"})

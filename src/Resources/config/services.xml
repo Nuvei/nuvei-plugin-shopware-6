@@ -15,10 +15,7 @@
             <argument type="service" 
                       id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <argument type="service" id="state_machine_state.repository"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
-            <argument type="service" id="order_transaction.repository"/>
             
             <tag name="shopware.payment.method.sync" />
         </service>
@@ -48,15 +45,15 @@
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="order.repository"/>
             <argument type="service" id="currency.repository"/>
-            <!--<argument type="service" id="state_machine_state.repository"/>-->
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+            <argument type="service" id="state_machine_state.repository"/>
             
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
         </service>
         
-        <!-- Nuvei Admin contrller -->
+        <!-- Nuvei Admin controller -->
         <service id="Swag\NuveiCheckout\Administration\Controller\OrderController" public="true">
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
             <argument type="service" id="order.repository"/>
@@ -64,7 +61,6 @@
             <argument type="service" id="currency.repository"/>
             <argument type="service" id="order_transaction.repository"/>
             <argument type="service" id="Doctrine\DBAL\Connection"/>
-<!--            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>-->
             
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

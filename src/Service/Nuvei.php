@@ -122,12 +122,27 @@ class Nuvei
     private $restApiProdUrl          = 'https://secure.safecharge.com/ppp/api/v1/';
     private $saveLogs                = true;
     private $sandboxMode             = true;
-    private $nuveiSourceApplication  = 'Shopwre_Plugin';
-    private $traceId;
-    private $systemConfigService;
+    private $nuveiSourceApplication  = 'SHOPWARE_PLUGIN';
     
     private $devices     = array('iphone', 'ipad', 'android', 'silk', 'blackberry', 'touch', 'linux', 'windows', 'mac');
     private $browsers    = array('ucbrowser', 'firefox', 'chrome', 'opera', 'msie', 'edge', 'safari', 'blackberry', 'trident');
+    
+    private $fieldsToMask = [
+        'ips'       => ['ipAddress'],
+        'names'     => ['firstName', 'lastName', 'first_name', 'last_name', 'shippingFirstName', 'shippingLastName'],
+        'emails'    => [
+            'userTokenId',
+            'email',
+            'shippingMail', // from the DMN
+            'userid', // from the DMN
+            'user_token_id', // from the DMN
+        ],
+        'address'   => ['address', 'phone', 'zip'],
+        'others'    => ['userAccountDetails', 'userPaymentOption', 'paymentOption'],
+    ];
+    
+    private $traceId;
+    private $systemConfigService;
     
     public function __construct(SystemConfigService $systemConfigService)
     {
@@ -159,8 +174,13 @@ class Nuvei
             throw new \Exception('Logs path not found: ' . $logsPath);
         }
         
-        $d      = $data;
-        $string = '';
+        $d              = $data;
+        $string         = '';
+        $mask_details   = true; // true if the setting is not set
+        
+        if($this->systemConfigService->get('SwagNuveiCheckout.config.nuveiMaskLog') == 'no') {
+            $mask_details = false;
+        }
         
         if (is_bool($data)) {
             $d = $data ? 'true' : 'false';
@@ -172,18 +192,25 @@ class Nuvei
             $d = 'Data is Empty.';
         }
         elseif (is_array($data)) {
-            // do not log accounts if on prod
-            if (!$this->sandboxMode) {
-                if (isset($data['userAccountDetails']) && is_array($data['userAccountDetails'])) {
-                    $data['userAccountDetails'] = 'account details';
-                }
-                if (isset($data['userPaymentOption']) && is_array($data['userPaymentOption'])) {
-                    $data['userPaymentOption'] = 'user payment options details';
-                }
-                if (isset($data['paymentOption']) && is_array($data['paymentOption'])) {
-                    $data['paymentOption'] = 'payment options details';
-                }
+            if ($mask_details) {
+                // clean possible objects inside array
+                $data = json_decode(json_encode($data), true);
+                
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
             }
+            
+            // do not log accounts if on prod
+//            if (!$this->sandboxMode) {
+//                if (isset($data['userAccountDetails']) && is_array($data['userAccountDetails'])) {
+//                    $data['userAccountDetails'] = 'account details';
+//                }
+//                if (isset($data['userPaymentOption']) && is_array($data['userPaymentOption'])) {
+//                    $data['userPaymentOption'] = 'user payment options details';
+//                }
+//                if (isset($data['paymentOption']) && is_array($data['paymentOption'])) {
+//                    $data['paymentOption'] = 'payment options details';
+//                }
+//            }
             // do not log accounts if on prod
 
             if (!empty($data['paymentMethods']) && is_array($data['paymentMethods'])) {
@@ -202,6 +229,13 @@ class Nuvei
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         else {
+            if ($mask_details && is_object($data)) {
+                // clean possible objects inside array
+                $data = json_decode(json_encode($data), true);
+
+                array_walk_recursive($data, [$this, 'maskData'], $this->fieldsToMask);
+            }
+            
             $d = $this->sandboxMode ? json_encode($data, JSON_PRETTY_PRINT) : json_encode($data);
         }
         
@@ -502,7 +536,7 @@ class Nuvei
 			return $device_details;
 		}
 		
-		$user_agent = strtolower(filter_var($_SERVER['HTTP_USER_AGENT'], FILTER_SANITIZE_STRING));
+		$user_agent = strtolower(filter_var($_SERVER['HTTP_USER_AGENT']));
 		
 		if (empty($user_agent)) {
 			$device_details['Warning'] = 'Probably the merchant Server has problems with PHP filter_var function!';
@@ -698,5 +732,29 @@ class Nuvei
 		
 		return $params;
 	}
+    
+    /**
+     * A callback function for arraw_walk_recursive.
+     * 
+     * @param mixed $value
+     * @param mixed $key
+     * @param array $fields
+     */
+    private function maskData(&$value, $key, $fields)
+    {
+        if (!empty($value)) {
+            if (in_array($key, $fields['ips'])) {
+                $value = rtrim(long2ip(ip2long($value) & (~255)), "0")."x";
+            } elseif (in_array($key, $fields['names'])) {
+                $value = mb_substr($value, 0, 1) . '****';
+            } elseif (in_array($key, $fields['emails'])) {
+                $value = '****' . mb_substr($value, 4);
+            } elseif (in_array($key, $fields['address'])
+                || in_array($key, $fields['others'])
+            ) {
+                $value = '****';
+            }
+        }
+    }
     
 }

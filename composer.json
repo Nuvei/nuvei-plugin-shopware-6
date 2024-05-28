@@ -1,7 +1,7 @@
 {
 	"name": "swag/nuvei-checkout",
 	"description": "Nuvei Checkout Payment plugin",
-	"version": "1.0.4",
+	"version": "1.2.0",
 	"type": "shopware-platform-plugin",
 	"license": "MIT",
 	"authors": [
@@ -10,7 +10,7 @@
 		}
 	],
 	"require": {
-		"shopware/core": "6.4.*"
+		"shopware/core": "^6.5"
 	},
 	"autoload": {
 		"psr-4": {

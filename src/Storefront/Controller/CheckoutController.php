@@ -6,8 +6,9 @@ use Shopware\Storefront\Controller\StorefrontController;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Shopware\Core\Checkout\Cart\CartPersister;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -17,10 +18,9 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\ContainsFilter;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
+#[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
  * @author Nuvei
- * 
- * @Route(defaults={"_routeScope"={"storefront"}})
  */
 class CheckoutController extends StorefrontController
 {
@@ -37,15 +37,16 @@ class CheckoutController extends StorefrontController
     private $sysConfig;
     private $context;
     private $isUserLoggedIn;
+    private $request;
     
     public function __construct(
-        EntityRepositoryInterface $pmRepository,
-        EntityRepositoryInterface $currRepository,
-        EntityRepositoryInterface $customerRepository,
-        EntityRepositoryInterface $customerAddressRepository,
-        EntityRepositoryInterface $countryRepository,
-        EntityRepositoryInterface $langRepository,
-        EntityRepositoryInterface $localeRepository,
+        EntityRepositoryInterface|EntityRepository $pmRepository,
+        EntityRepositoryInterface|EntityRepository $currRepository,
+        EntityRepositoryInterface|EntityRepository $customerRepository,
+        EntityRepositoryInterface|EntityRepository $customerAddressRepository,
+        EntityRepositoryInterface|EntityRepository $countryRepository,
+        EntityRepositoryInterface|EntityRepository $langRepository,
+        EntityRepositoryInterface|EntityRepository $localeRepository,
         Nuvei $nuvei,
         CartPersister $cartPersister,
         SystemConfigService $sysConfig
@@ -62,20 +63,22 @@ class CheckoutController extends StorefrontController
         $this->sysConfig                    = $sysConfig;
     }
     
+    #[Route(path: '/nuvei_checkout', name: 'frontend.nuveicheckout.checkout', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
-     * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
-     * 
      * @param Request $request
      * @param Context $context
      * 
      * @return JsonResponse
+     * 
+     * Legacy route for SW 6.4
+     * @Route("/nuvei_checkout", name="frontend.nuveicheckout.checkout", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      */
-    public function returnCheckoutData(Request $request, Context $context)
+    public function returnCheckoutData(Request $request, Context $context): JsonResponse
     {
         $this->nuvei->createLog('returnCheckoutData');
         
         $this->context  = $context;
-//        $selected_pm    = $request->query->get('selected_pm');
+        $this->request  = $request;
         $is_nuvei       = $this->isNuveiOrder($request->query->get('selected_pm'));
         
         // exit
@@ -168,9 +171,11 @@ class CheckoutController extends StorefrontController
         $locale_data = $this->localeRepository->search($criteria, $context)->first();
         # /get language
         
-        $useDCC = $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc');
+        $locale                 = substr($locale_data->getCode(), 0, 2);
+        $useDCC                 = $this->sysConfig->get('SwagNuveiCheckout.config.nuveiDcc');
+        $nuvei_order_details    = $this->request->getSession()->get('nuvei_order_details', []);
         
-        if (0 == $_SESSION['nuvei_order_details']['amount']) {
+        if (isset($nuvei_order_details['amount']) && 0 == $nuvei_order_details['amount']) {
             $useDCC = 'false';
         }
         
@@ -183,9 +188,9 @@ class CheckoutController extends StorefrontController
                 ->get('SwagNuveiCheckout.config.nuveiMode') ? 'test' : 'prod',
 			'merchantId'                => trim($this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantId')),
 			'merchantSiteId'            => trim($this->sysConfig->get('SwagNuveiCheckout.config.nuveiMerchantSiteId')),
-			'country'                   => $_SESSION['nuvei_order_details']['billingAddress']['country'],
-			'currency'                  => $_SESSION['nuvei_order_details']['currency'],
-			'amount'                    => (string) $_SESSION['nuvei_order_details']['amount'],
+			'country'                   => $nuvei_order_details['billingAddress']['country'] ?? '',
+			'currency'                  => $nuvei_order_details['currency'] ?? '',
+			'amount'                    => (string) ($nuvei_order_details['amount'] ?? ''),
 			'renderTo'                  => '#nuvei_checkout',
 			'useDCC'                    => $useDCC,
 			'strict'                    => false,
@@ -195,9 +200,11 @@ class CheckoutController extends StorefrontController
 //			'pmBlacklist'               => $blocked_pms,
 //            'blockCards'                => $blocked_cards,
 			'alwaysCollectCvv'          => true,
-			'fullName'                  => $_SESSION['nuvei_order_details']['billingAddress']['firstName'] . ' '
-                . $_SESSION['nuvei_order_details']['billingAddress']['lastName'],
-			'email'                     => $_SESSION['nuvei_order_details']['billingAddress']['email'],
+			'fullName'                  => trim(
+                ($nuvei_order_details['billingAddress']['firstName'] ?? '') . ' '
+                . ($nuvei_order_details['billingAddress']['lastName'] ?? '')
+            ),
+			'email'                     => $nuvei_order_details['billingAddress']['email'] ?? '',
 			'payButton'                 => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPayButton'),
 			'showResponseMessage'       => false, // shows/hide the response popups
 			'locale'                    => $locale,
@@ -243,20 +250,25 @@ class CheckoutController extends StorefrontController
         ]);
     }
     
+    #[Route(path: '/nuvei_prepayment', name: 'frontend.nuveicheckout.prepayment', defaults: ["XmlHttpRequest" => true], methods: ['GET'])]
     /**
-     * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
-     * 
      * @param Request $request
      * @param Context $context
      * 
      * @return JsonResponse
+     * 
+     * Legacy route for SW 6.4
+     * @Route("/nuvei_prepayment", name="frontend.nuveicheckout.prepayment", defaults={"XmlHttpRequest"=true}, methods={"GET"})
      */
     public function prePaymentCheck(Request $request, Context $context)
     {
         $this->nuvei->createLog('prePaymentCheck');
         
         $this->context  = $context;
+        $this->request  = $request;
         $is_nuvei       = $this->isNuveiOrder($request->query->get('selected_pm'));
+        
+        $this->nuvei->createLog($this->request->getSession()->all(), 'getSession all');
         
         // exit
         if (!$is_nuvei) {
@@ -270,7 +282,8 @@ class CheckoutController extends StorefrontController
         $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
         $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
-        $session_data   = $_SESSION['nuvei_order_details']['itemsDataHash'] ?? [];
+        $nuvei_order_details    = $this->request->getSession()->get('nuvei_order_details', []);
+        $session_data   = $nuvei_order_details['itemsDataHash'] ?? [];
         $current_data   = $this->getItemsBaseData();
         
         // success
@@ -283,8 +296,8 @@ class CheckoutController extends StorefrontController
         // error
         $this->nuvei->createLog(
             [
-                'session itemsDataHash' => $session_data,
-                'cart itemsDataHash'    => md5(serialize($current_data)),
+                '$session_data' => $session_data,
+                'itemsDataHash' => md5(serialize($current_data)),
             ],
             'prePaymentCheck error'
         );
@@ -339,41 +352,27 @@ class CheckoutController extends StorefrontController
         
         # Try to update the order
         $addresses          = $this->getAddresses();
+        $try_update_order   = true;
+        $open_order_details = $this->request->getSession()->get('nuvei_order_details', []);
         $transactionType    = (float) $amount == 0 
             ? 'Auth' : $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction');
-        $try_update_order   = true;
-        $open_order_details = isset($_SESSION['nuvei_order_details']) 
-            ? $_SESSION['nuvei_order_details'] : [];
         
-//        if (empty($open_order_details['transactionType'])) {
-//            $try_update_order = false;
-//        }
-//        
-//        if ($amount == 0
-//            && (empty($open_order_details['transactionType'])
-//                || 'Auth' != $open_order_details['transactionType']
-//            )
-//        ) {
-//            $try_update_order = false;
-//        }
-//        
-//        if ($amount > 0
-//            && !empty($open_order_details['transactionType'])
-//            && 'Auth' == $open_order_details['transactionType']
-//            && $open_order_details['transactionType']
-//                != $this->sysConfig->get('SwagNuveiCheckout.config.nuveiPaymentAction')
-//        ) {
-//            $try_update_order = false;
-//        }
-        
-        if ($open_order_details['transactionType'] != $transactionType
-            || $open_order_details['userTokenId'] != @$addresses['billingAddress']['email']
+        // check for few mandatory fields
+        if (!isset($open_order_details['transactionType'])
+            || !isset($open_order_details['userTokenId'])
+            || !isset($addresses['billingAddress']['email'])
         ) {
-            $this->nuvei->createLog([
-                    $open_order_details['transactionType'],
-                    $transactionType,
-                    $open_order_details['userTokenId'],
-                    @$addresses['billingAddress']['email'],
+            $try_update_order = false;
+        }
+        elseif ($open_order_details['transactionType'] != $transactionType
+            || $open_order_details['userTokenId'] != $addresses['billingAddress']['email']
+        ) {
+            $this->nuvei->createLog(
+                [
+                    'oo transactionType'    => $open_order_details['transactionType'],
+                    '$transactionType'      => $transactionType,
+                    'oo userTokenId'        => $open_order_details['userTokenId'],
+                    'billing addr email'    => @$addresses['billingAddress']['email'],
                 ],
                 '$try_update_order = false',
                 'DEBUG'
@@ -419,7 +418,7 @@ class CheckoutController extends StorefrontController
             && !empty($resp['status'])
             && 'SUCCESS' == $resp['status']
         ) {
-            $_SESSION['nuvei_order_details'] = [
+            $sessionParams = [
                 'sessionToken'      => $resp['sessionToken'],
                 'orderId'           => $resp['orderId'],
                 'clientRequestId'   => $resp['clientRequestId'],
@@ -431,6 +430,8 @@ class CheckoutController extends StorefrontController
                 'currency'          => $oo_params['currency'],
                 'amount'            => $oo_params['amount'],
             ];
+            
+            $this->request->getSession()->set('nuvei_order_details', $sessionParams);
         }
         
         return $resp;
@@ -445,13 +446,7 @@ class CheckoutController extends StorefrontController
      */
     private function updateOrder($amount, $currency, $items_data)
     {
-        $this->nuvei->createLog('updateOrder()');
-        
-        $last_open_order_details = [];
-        
-        if(!empty($_SESSION['nuvei_order_details'])) {
-            $last_open_order_details = $_SESSION['nuvei_order_details'];
-        }       
+        $last_open_order_details = $this->request->getSession()->get('nuvei_order_details', []);
         
 		$this->nuvei->createLog(
 			$last_open_order_details,
@@ -463,9 +458,7 @@ class CheckoutController extends StorefrontController
 			|| empty($last_open_order_details['orderId'])
 			|| empty($last_open_order_details['clientRequestId'])
 		) {
-            $msg = 'updateOrder - missing mandatory session data, continue with new openOrder.';
-			
-            $this->nuvei->createLog($last_open_order_details, $msg);
+            $this->nuvei->createLog('updateOrder - missing mandatory session data, continue with new openOrder.');
 			
             return array('status' => 'ERROR');
 		}
@@ -509,14 +502,16 @@ class CheckoutController extends StorefrontController
             && !empty($resp['status'])
             && 'SUCCESS' == $resp['status']
         ) {
-            $_SESSION['nuvei_order_details']['sessionToken']    = $resp['sessionToken'];
-            $_SESSION['nuvei_order_details']['orderId']         = $resp['orderId'];
-            $_SESSION['nuvei_order_details']['clientRequestId'] = $resp['clientRequestId'];
-            $_SESSION['nuvei_order_details']['itemsDataHash']   = md5(serialize($items_data));
+            $last_open_order_details['sessionToken']    = $resp['sessionToken'];
+            $last_open_order_details['orderId']         = $resp['orderId'];
+            $last_open_order_details['clientRequestId'] = $resp['clientRequestId'];
+            $last_open_order_details['itemsDataHash']   = md5(serialize($items_data));
             // the next parameters we will use for the JS response
-            $_SESSION['nuvei_order_details']['billingAddress']  = $addresses['billingAddress'];
-            $_SESSION['nuvei_order_details']['amount']          = $amount;
-            $_SESSION['nuvei_order_details']['currency']        = $currency;
+            $last_open_order_details['billingAddress']  = $addresses['billingAddress'];
+            $last_open_order_details['amount']          = $amount;
+            $last_open_order_details['currency']        = $currency;
+            
+            $this->request->getSession()->set('nuvei_order_details', $last_open_order_details);
         }
         
         return $resp;
@@ -564,7 +559,6 @@ class CheckoutController extends StorefrontController
                 "address"   => $first_address->getStreet(),
                 "phone"     => $first_address->getPhoneNumber(),
                 "zip"       => $first_address->getZipcode(),
-//                "city"      => $first_address->getCountryState()->getName(),
                 "city"      => $first_address->getCity(),
                 'country'	=> $first_address->getCountry()->getIso(),
                 'email'		=> $customer_data->getEmail(),

@@ -1,5 +1,19 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.2.0
+```
+    * Support for SW 6.6.*.
+    * Changed sourceApplication parameter.
+    * The compiled JS files for the frontstore are included.
+    * This version does not support ShopWare 6.4.*.
+```
+
+# 1.1.0
+```
+    * Support for SW 6.5.*.
+    * Add option to mask/unmask user details in the log.
+```
+
 # 1.0.4-p1
 ```
     * Added Tag SDK URL for test cases.
@@ -21,7 +35,6 @@
     * Disable DCC when Order total is Zero.
     * Fix for the "SDK translations" setting example.
     * Added locale for Gpay button.
-    * Removed administration js files. Use bundle instead.
 ```
 
 # 1.0.3

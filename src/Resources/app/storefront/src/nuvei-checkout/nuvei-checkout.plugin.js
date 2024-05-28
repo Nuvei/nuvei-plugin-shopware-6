@@ -1,7 +1,7 @@
 import HttpClient from 'src/service/http-client.service'
 import Plugin from 'src/plugin-system/plugin.class';
 
-export default class NuveiPlugin extends Plugin {
+export default class NuveiCheckout extends Plugin {
 	init() {
         // initalize the HttpClient
         this._client = new HttpClient();
@@ -13,21 +13,42 @@ export default class NuveiPlugin extends Plugin {
 	onLoad() {
 		console.log('.checkout-main loaded');
         
-        var paymentOptions = jQuery('input[name="paymentMethodId"]');
+        var paymentOptions = document.querySelector('input[name="paymentMethodId"]');
         
         // checkout page, but there are no payment options to select
-        if (paymentOptions.length == 0) {
+        if (paymentOptions && paymentOptions.length == 0) {
             return;
         }
         
         // append Nuvei Checkout container
-        jQuery('body').find('.checkout-main').closest('.container')
-            .append('<div id="nuvei_checkout"></div>');
-    
-        // add few Nuvei inputs
-        var submitedForm = jQuery('#confirmFormSubmit').closest('form');
-        submitedForm.append('<input type="hidden" name="nuveiPaymentMethod" value="" />');
-        submitedForm.append('<input type="hidden" name="nuveiTransactionId" value="" />');
+        let checkoutCont    = document.querySelector('.checkout-main').closest('.container');
+        let nuveiCheckout   = document.createElement('div');
+        
+        nuveiCheckout.id = 'nuvei_checkout';
+        checkoutCont.appendChild(nuveiCheckout);
+        
+        // check if #confirmFormSubmit exists
+		let confirmFormSubmit	= document.querySelector('#confirmFormSubmit');
+		
+		if (!confirmFormSubmit) {
+			return;
+		}
+		
+		// add few Nuvei inputs
+        let submitedFormCont    = document.querySelector('#confirmFormSubmit').closest('form');
+        let inputPaymentMethod  = document.createElement('input');
+        let inputTrId           = document.createElement('input');
+        
+        inputPaymentMethod.type     = 'hidden';
+        inputPaymentMethod.name     = 'nuveiPaymentMethod';
+        inputPaymentMethod.value    = '';
+        
+        inputTrId.type  = 'hidden';
+        inputTrId.name  = 'nuveiTransactionId';
+        inputTrId.value = '';
+        
+        submitedFormCont.appendChild(inputPaymentMethod);
+        submitedFormCont.appendChild(inputTrId);
         
         // temp load external files
         var nuveiScript      = document.createElement('script');
@@ -43,9 +64,10 @@ export default class NuveiPlugin extends Plugin {
             
             nuveiSdk.src = 'https://cdn.safecharge.com/safecharge_resources/v1/checkout/checkout.js';
             
+            // for QA site use Tag SDK
             try {
                 if ('shopware6automation.gw-4u.com' === window.location.host) {
-                    nuveiSdk.src = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js';
+                    nuveiSdk.src = 'https://devmobile.sccdev-qa.com/checkoutNext/checkout.js'; 
                 }
             }
             catch (_exception) {

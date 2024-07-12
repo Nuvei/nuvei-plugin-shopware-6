@@ -219,6 +219,7 @@ class CheckoutController extends StorefrontController
                     'locale' => $locale
                 ]
             ],
+            'sourceApplication' => $this->nuveiSourceApplication,
         ];
         
         if (!empty($blocked_pms)) {

@@ -3,6 +3,7 @@
 # 1.2.1
 ```
     * Pass sourceApplication to Simply Connect.
+    * Formatted the readme.
 ```
 
 # 1.2.0

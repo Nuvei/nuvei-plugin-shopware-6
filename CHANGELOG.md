@@ -2,6 +2,7 @@
 
 # 1.2.1
 ```
+    * Get the sourceApplication from a public method.
     * Pass sourceApplication to Simply Connect.
     * Formatted the readme.
 ```

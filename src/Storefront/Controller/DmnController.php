@@ -63,11 +63,10 @@ class DmnController extends StorefrontController
      */
     public function getDmn(Request $request, Context $context): JsonResponse
     {
-        $this->nuvei->createLog(@$_REQUEST, 'getDmn');
+        $this->nuvei->createLog([$request->query->all(), $request->request->all()], 'getDmn');
         
         # manually stop DMN process
-//        $this->nuvei->createLog(@$_REQUEST, $msg);
-//        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
+        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
         
         // exit
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
@@ -451,6 +450,7 @@ class DmnController extends StorefrontController
                 // for the order
                 $ordCr = new Criteria();
                 $ordCr->addFilter(new EqualsFilter('id', $order_id));
+                $ordCr->addAssociation('stateMachineState'); // Load the stateMachineState relation
                 $this->order = $this->orderRepo->search($ordCr, $this->context)->first();
                 
                 // first try to get Order State
@@ -475,7 +475,7 @@ class DmnController extends StorefrontController
                 
                 // the first Nuvei state of an order must be STATE_IN_PROGRESS
                 // default State for the Order is Open
-                $this->nuvei->createLog($this->order->stateMachineState->name, 'Check the Order State:');
+                $this->nuvei->createLog($this->order->stateMachineState, 'Check the Order State:');
                 
                 if (OrderStates::STATE_OPEN == $orderState) {
                     $this->nuvei->createLog(
@@ -591,6 +591,7 @@ class DmnController extends StorefrontController
         // get the Transaction
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('orderId', $order_id));
+        $criteria->addAssociation('stateMachineState'); // Load the stateMachineState relation
         $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
         
         // first try to get the State
@@ -954,9 +955,27 @@ class DmnController extends StorefrontController
      */
     private function getRequestParam($name, $default = '')
     {
+        // for the GET parameters
+        if (is_array($req = $request->query->all()) 
+            && isset($req[$name])
+        ) {
+            return $req[$name];
+        }
+        
+        // for the POST parameters
+        if (is_array($req = $request->request->all()) 
+            && isset($req[$name])
+        ) {
+            return $req[$name];
+        }
+        
         if (isset($_REQUEST[$name])) {
             return $_REQUEST[$name];
         }
+        
+        
+        
+        
         
         return $default;
     }
@@ -971,6 +990,7 @@ class DmnController extends StorefrontController
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('id', $id));
+        $criteria->addAssociation('stateMachineState'); // Load the stateMachineState relation
 
         $stateResult = $this->stateMachineStateRepository->search($criteria, $this->context)->first();
         

@@ -1,5 +1,11 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.2.2
+```
+    * The minimum required ShopWare core version was changed to 6.6.
+    * Explicitly add "stateMachineState" relation when get an Order or a Transaction, as required in ShopWare 6.6.
+```
+
 # 1.2.1
 ```
     * Get the sourceApplication from a public method.

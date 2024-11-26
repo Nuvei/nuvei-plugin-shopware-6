@@ -144,6 +144,7 @@ class OrderController extends AbstractController
             # search for the Transaction
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsFilter('orderId', $order->getId()));
+            $criteria->addAssociation('stateMachineState'); // Load the stateMachineState relation
             $transaction = $this->transactionRepo->search($criteria, $context)->first();
 
             if (is_null($transaction)) {
@@ -206,7 +207,7 @@ class OrderController extends AbstractController
             }
         }
         catch(\Exception $ex) {
-            $this->nuvei->createLog($ex->getMessage(), 'Nuvei proccess exception');
+            $this->nuvei->createLog($ex->getMessage(), 'Nuvei proccess exception', 'WARN');
             
             return new JsonResponse([
                 'success' => 0,

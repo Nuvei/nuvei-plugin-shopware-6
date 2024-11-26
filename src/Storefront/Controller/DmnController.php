@@ -65,8 +65,11 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog([$request->query->all(), $request->request->all()], 'getDmn');
         
+        $this->request = $request;
+        
         # manually stop DMN process
-        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
+//        $this->nuvei->createLog([$request->query->all(), $request->request->all()], 'Manually stopped DMN process.');
+//        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
         
         // exit
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
@@ -956,14 +959,14 @@ class DmnController extends StorefrontController
     private function getRequestParam($name, $default = '')
     {
         // for the GET parameters
-        if (is_array($req = $request->query->all()) 
+        if (is_array($req = $this->request->query->all()) 
             && isset($req[$name])
         ) {
             return $req[$name];
         }
         
         // for the POST parameters
-        if (is_array($req = $request->request->all()) 
+        if (is_array($req = $this->request->request->all()) 
             && isset($req[$name])
         ) {
             return $req[$name];

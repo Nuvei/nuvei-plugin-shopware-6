@@ -158,10 +158,10 @@ class OrderController extends AbstractController
                 ]);
             }
             
-            $trState = $transaction->stateMachineState->technicalName;
+            $trState = $transaction->getStateMachineState()->getTechnicalName();
             
             $this->nuvei->createLog(
-                [$transaction->stateMachineState->name, $trState],
+                [$transaction->getStateMachineState()->getName(), $trState],
                 'transaction state'
             );
             # /search for the Transaction

@@ -56,20 +56,32 @@ class DmnController extends StorefrontController
         $this->stateMachineStateRepository  = $stateMachineStateRepository;
     }
     
-    #[Route(path: '/nuvei_dmn', name: 'frontend.nuveicheckout.dmn', defaults: ["XmlHttpRequest" => true], methods: ['GET', 'POST'])]
+    #[Route(
+        path: '/nuvei_dmn', 
+        name: 'frontend.nuveicheckout.dmn', 
+        defaults: ["XmlHttpRequest" => true, "csrf_protected" => false], 
+        methods: ['GET', 'POST']
+    )]
     /**
      * Legacy route for SW 6.4
      * @Route("/nuvei_dmn/", name="frontend.nuveicheckout.dmn", defaults={"XmlHttpRequest"=true, "csrf_protected"=false}, methods={"GET", "POST"})
      */
     public function getDmn(Request $request, Context $context): JsonResponse
     {
-        $this->nuvei->createLog([$request->query->all(), $request->request->all()], 'getDmn');
+        $this->nuvei->createLog($_REQUEST, 'getDmn');
         
         $this->request = $request;
         
         # manually stop DMN process
-//        $this->nuvei->createLog([$request->query->all(), $request->request->all()], 'Manually stopped DMN process.');
-//        return new JsonResponse(['message' => 'DMN report: Manually stopped process.']);
+//        $this->nuvei->createLog($_REQUEST, 'Manually stopped DMN process.');
+//        return new JsonResponse([
+//            'message'       => 'DMN report: Manually stopped process.',
+//            'params'        => $_REQUEST,
+//            'method'        => $request->getMethod(),
+//            'rawContent'    => $request->getContent(),
+//            'request'       => $request->request->all(), // Form data (empty for JSON)
+//            'query'         => $request->query->all(),     // Query parameters
+//        ]);
         
         // exit
         if ('CARD_TOKENIZATION' == $this->getRequestParam('type')) {
@@ -457,10 +469,10 @@ class DmnController extends StorefrontController
                 $this->order = $this->orderRepo->search($ordCr, $this->context)->first();
                 
                 // first try to get Order State
-                if (is_object($this->order->stateMachineState) 
-                    && !empty($this->order->stateMachineState->technicalName)
+                if (is_object($this->order->getStateMachineState()) 
+                    && !empty($this->order->getStateMachineState()->getTechnicalName())
                 ) {
-                    $orderState = $this->order->stateMachineState->technicalName;
+                    $orderState = $this->order->getStateMachineState()->getTechnicalName();
                 }
                 // second try
                 else {
@@ -478,7 +490,10 @@ class DmnController extends StorefrontController
                 
                 // the first Nuvei state of an order must be STATE_IN_PROGRESS
                 // default State for the Order is Open
-                $this->nuvei->createLog($this->order->stateMachineState, 'Check the Order State:');
+                $this->nuvei->createLog(
+                    $this->order->getStateMachineState()->getTechnicalName(), 
+                    'Check the Order State:'
+                );
                 
                 if (OrderStates::STATE_OPEN == $orderState) {
                     $this->nuvei->createLog(
@@ -585,23 +600,28 @@ class DmnController extends StorefrontController
     {
         $this->nuvei->createLog($order_number, $transactionType);
         
-        // for the order
-        $ordCr = new Criteria();
-        $ordCr->addFilter(new EqualsFilter('orderNumber', $order_number));
-        $this->order    = $this->orderRepo->search($ordCr, $this->context)->first();
-        $order_id       = $this->order->id;
-        
-        // get the Transaction
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('orderId', $order_id));
-        $criteria->addAssociation('stateMachineState'); // Load the stateMachineState relation
-        $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
+        try {
+            // for the order
+            $ordCr = new Criteria();
+            $ordCr->addFilter(new EqualsFilter('orderNumber', $order_number));
+            $this->order    = $this->orderRepo->search($ordCr, $this->context)->first();
+            $order_id       = $this->order->id;
+
+            // get the Transaction
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('orderId', $order_id));
+            $criteria->addAssociation('stateMachineState'); // Load the stateMachineState relation
+            $this->transaction = $this->orderTransactionRepo->search($criteria, $this->context)->last();
+        }
+        catch(\Exception $e) {
+            $this->nuvei->createLog($e->getMessage(), 'Exception');
+        }
         
         // first try to get the State
-        if (is_object($this->transaction->stateMachineStat)
-            && isset($this->transaction->stateMachineState->technicalName)
+        if (is_object($this->transaction->getStateMachineState())
+            && !empty($this->transaction->getStateMachineState()->getTechnicalName())
         ) {
-            $trStateName = $this->transaction->stateMachineState->technicalName;
+            $trStateName = $this->transaction->getStateMachineState()->getTechnicalName();
         }
         // second try
         else {
@@ -611,7 +631,7 @@ class DmnController extends StorefrontController
         // cases when can not accept this transaction type
         if ('Settle' == $transactionType && 'authorized' != $trStateName) {
             $msg = 'Can not apply Settle on transaction with State different than Authorized.';
-            $this->nuvei->createLog($this->transaction->stateMachineState->technicalName, $msg);
+            $this->nuvei->createLog($this->transaction->getStateMachineState()->getTechnicalName(), $msg);
             
             return [
                 'message' => $msg

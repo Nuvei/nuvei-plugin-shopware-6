@@ -60,7 +60,12 @@ window.nuveiRenderCheckout = function() {
                 // call Checkout SDK
                 response.nuveiSdkParams.onResult    = nuveiAfterSdkResponse;
                 response.nuveiSdkParams.prePayment  = nuveiUpdateCart;
-                nuveiLastToken                      = response.nuveiSdkParams.sessionToken;
+                
+                if ('shopware6automation.gw-4u.com' === window.location.host) {
+                    response.nuveiSdkParams.webSdkEnv = 'devmobile'; 
+                }
+                
+                nuveiLastToken = response.nuveiSdkParams.sessionToken;
 
                 console.log('nuveiSdkParams', response.nuveiSdkParams);
 

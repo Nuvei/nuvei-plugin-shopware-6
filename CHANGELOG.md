@@ -4,6 +4,7 @@
 ```
     * The minimum required ShopWare core version was changed to 6.6.
     * Explicitly add "stateMachineState" relation when get an Order or a Transaction, as required in ShopWare 6.6.
+    * When the plugin is used on QA site, add specific parameter to the Simply Connect.
 ```
 
 # 1.2.1

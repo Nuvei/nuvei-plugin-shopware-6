@@ -380,12 +380,9 @@ class Nuvei
         
         /**
          * We need the following URLs only for openOrder and updateOrder requests.
-         * Set them to auto close in case nuveiAutoCloseApmPopup is set to Yes
-         * and when nuveiApmWindowType is different from redirect.
+         * Set them to auto close in case nuveiApmWindowType is different from redirect.
          */
-        if (in_array($method, ['openOrder', 'updateOrder'])
-            && (bool) $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAutoCloseApmPopup')
-        ) {
+        if (in_array($method, ['openOrder', 'updateOrder'])) {
             $params['urlDetails']['successUrl']
                 = $params['urlDetails']['failureUrl']
                 = $params['urlDetails']['pendingUrl']

@@ -173,26 +173,6 @@
 		</input-field>
         
         <input-field type="single-select">
-			<name>nuveiAutoCloseApmPopup</name>
-			<label>Auto close APM popup</label>
-            
-            <options>
-				<option>
-					<id>1</id>
-					<name>Yes</name>
-				</option>
-				<option>
-					<id>0</id>
-					<name>No</name>
-				</option>
-			</options>
-            
-            <defaultValue>1</defaultValue>
-            
-            <helpText>Recommended value is "Yes".</helpText>
-		</input-field>
-        
-        <input-field type="single-select">
 			<name>nuveiMaskLog</name>
 			<label>Mask users details in the log</label>
             

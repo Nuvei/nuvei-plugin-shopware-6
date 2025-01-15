@@ -560,12 +560,12 @@ class DmnController extends StorefrontController
         $order_request_time = $this->getRequestParam('customField3', 0); // time of create/update order
         
         // do not create AutoVoid
-//        if (0 == $order_request_time
-//            || time() - $order_request_time <= 1800 // less or 30 minutes
-//        ) {
-//            $this->nuvei->createLog($order_request_time, 'We will not create AutoVoid.');
-//            return false;
-//        }
+        if (0 == $order_request_time
+            || time() - $order_request_time <= 1800 // less or 30 minutes
+        ) {
+            $this->nuvei->createLog($order_request_time, 'We will not create AutoVoid.');
+            return false;
+        }
         
         // save notification
         $data = [[

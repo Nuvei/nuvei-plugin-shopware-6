@@ -1,5 +1,11 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.3.0
+```
+    * Added option to turn on/off the auto-void logic - plugin settings > Basic Configuration.
+    * The plugin will add notification when cannot find corresponding Order for some Sale/Auth DMN.
+```
+
 # 1.2.2
 ```
     * The minimum required ShopWare core version was changed to 6.6.

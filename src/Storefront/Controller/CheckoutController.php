@@ -91,6 +91,7 @@ class CheckoutController extends StorefrontController
         // get the Cart
         /** @var SalesChannelContext $context */
         $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
+        $salesChannelId         = $sales_channel_context->getSalesChannelId();
         $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
         if (!is_null($sales_channel_context->getCustomer())
@@ -103,7 +104,7 @@ class CheckoutController extends StorefrontController
         }
         
         // open the Nuvei Order
-        $resp = $this->openOrder();
+        $resp = $this->openOrder($salesChannelId);
         
         if (empty($resp['status']) || 'SUCCESS' != $resp['status']) {
             $this->nuvei->createLog('', 'Problem when try to open new Order.', 'CRITICAL');
@@ -309,9 +310,10 @@ class CheckoutController extends StorefrontController
     }
     
     /**
+     * @param string $salesChannelId
      * @return array
      */
-    private function openOrder()
+    private function openOrder($salesChannelId)
     {
         $this->nuvei->createLog('openOrder()');
         
@@ -383,7 +385,7 @@ class CheckoutController extends StorefrontController
         }
         
         if ($try_update_order) {
-            $up_resp        = $this->updateOrder($amount, $currency, $items_data);
+            $up_resp        = $this->updateOrder($amount, $currency, $items_data, $salesChannelId);
             $resp_status    = $this->nuvei->getRequestStatus($up_resp);
 
             if (!empty($resp_status) && 'SUCCESS' == $resp_status) {
@@ -405,6 +407,7 @@ class CheckoutController extends StorefrontController
                 'customField2'      => $this->cart->getToken(),
                 'customField4'      => $amount,
                 'customField5'      => $currency,
+                'customField6'      => $salesChannelId,
             ],
         ];
         
@@ -442,10 +445,11 @@ class CheckoutController extends StorefrontController
      * @param string $amount
      * @param string $currency
      * @param array $items_data
+     * @param string $salesChannelId
      * 
      * @return array
      */
-    private function updateOrder($amount, $currency, $items_data)
+    private function updateOrder($amount, $currency, $items_data, $salesChannelId)
     {
         $last_open_order_details = $this->request->getSession()->get('nuvei_order_details', []);
         
@@ -487,6 +491,7 @@ class CheckoutController extends StorefrontController
                 'customField2'      => $this->cart->getToken(),
                 'customField4'      => $amount,
                 'customField5'      => $currency,
+                'customField6'      => $salesChannelId,
             ],
         ];
         

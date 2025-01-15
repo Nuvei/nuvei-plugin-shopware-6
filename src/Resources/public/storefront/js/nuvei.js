@@ -90,6 +90,7 @@ window.nuveiRenderCheckout = function() {
         }
     };
 
+    console.log('test1');
 	let paymentMethod = document.querySelector('input[name="paymentMethodId"]');
 	
     xmlhttp.open("GET", "/nuvei_checkout?selected_pm=" + (paymentMethod ? paymentMethod.value : ''), true);
@@ -151,6 +152,7 @@ window.nuveiUpdateCart = function() {
             }
         };
 
+        console.log('test2');
 		let paymentMethod = document.querySelector('input[name="paymentMethodId"]');
 
         xmlhttp.open("GET", "/nuvei_prepayment?selected_pm=" + (paymentMethod ? paymentMethod.value : ''), true);

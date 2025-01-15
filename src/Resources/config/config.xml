@@ -69,6 +69,25 @@
             <defaultValue>Auth</defaultValue>
 		</input-field>
         
+        <input-field type="single-select">
+			<name>nuveiAllowAutoVoid</name>
+			<label>Allow Auto Void</label>
+			<options>
+				<option>
+					<id>yes</id>
+					<name>Yes</name>
+				</option>
+				<option>
+					<id>no</id>
+					<name>No</name>
+				</option>
+			</options>
+            
+            <defaultValue>no</defaultValue>
+            
+            <helpText>Allow plugin to initiate auto Void request in case there is Payment (transaction), but there is no Order for this transaction in the Store. This logic is based on incoming DMNs. Event the auto Void is disabled, a notification will be saved.</helpText>
+		</input-field>
+        
         <input-field type="bool">
 			<name>nuveiSaveLogs</name>
 			<label>Save logs</label>

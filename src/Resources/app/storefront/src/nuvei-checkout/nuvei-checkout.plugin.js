@@ -16,7 +16,7 @@ export default class NuveiCheckout extends Plugin {
         var paymentOptions = document.querySelector('input[name="paymentMethodId"]');
         
         // checkout page, but there are no payment options to select
-        if (paymentOptions && paymentOptions.length == 0) {
+        if (!paymentOptions || paymentOptions.length == 0) {
             return;
         }
         

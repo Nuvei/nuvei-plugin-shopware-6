@@ -9,6 +9,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Kernel;
+use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\StateMachine\StateMachineRegistry;
 use Shopware\Core\System\StateMachine\Transition;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -16,8 +17,10 @@ use Shopware\Storefront\Controller\StorefrontController;
 use Swag\NuveiCheckout\Service\Nuvei;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-//use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Attribute\Route;
+
+//use Shopware\Core\System\Notification\NotificationRepositoryInterface;
+
 
 #[Route(defaults: ['_routeScope' => ['storefront']])]
 /**
@@ -37,6 +40,7 @@ class DmnController extends StorefrontController
     private $transaction;
     private $stateMachineRegistry;
     private $currRepository;
+    private $notificationRepository;
 
     public function __construct(
         Nuvei $nuvei, 
@@ -45,7 +49,8 @@ class DmnController extends StorefrontController
         EntityRepository|EntityRepositoryInterface $orderRepo,
         EntityRepository|EntityRepositoryInterface $currRepository,
         StateMachineRegistry $stateMachineRegistry,
-        EntityRepository|EntityRepositoryInterface $stateMachineStateRepository
+        EntityRepository|EntityRepositoryInterface $stateMachineStateRepository,
+        EntityRepository|EntityRepositoryInterface $notificationRepository
     ) {
         $this->nuvei                        = $nuvei;
         $this->systemConfigService          = $systemConfigService;
@@ -54,6 +59,7 @@ class DmnController extends StorefrontController
         $this->stateMachineRegistry         = $stateMachineRegistry;
         $this->currRepository               = $currRepository;
         $this->stateMachineStateRepository  = $stateMachineStateRepository;
+        $this->notificationRepository       = $notificationRepository;
     }
     
     #[Route(
@@ -68,19 +74,13 @@ class DmnController extends StorefrontController
      */
     public function getDmn(Request $request, Context $context): JsonResponse
     {
-        $this->nuvei->createLog($_REQUEST, 'getDmn');
+        $this->nuvei->createLog([$_REQUEST, $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAllowAutoVoid')], 'getDmn');
         
         $this->request = $request;
         
         # manually stop DMN process
-//        $this->nuvei->createLog($_REQUEST, 'Manually stopped DMN process.');
 //        return new JsonResponse([
-//            'message'       => 'DMN report: Manually stopped process.',
-//            'params'        => $_REQUEST,
-//            'method'        => $request->getMethod(),
-//            'rawContent'    => $request->getContent(),
-//            'request'       => $request->request->all(), // Form data (empty for JSON)
-//            'query'         => $request->query->all(),     // Query parameters
+//            'message' => 'DMN report: Manually stopped process.',
 //        ]);
         
         // exit
@@ -96,7 +96,7 @@ class DmnController extends StorefrontController
         
         $req_status         = $this->nuvei->getRequestStatus();
         $dmnType            = $this->getRequestParam('dmnType');
-        $tr_id              = (int) $this->getRequestParam('TransactionID');
+        $tr_id              = $this->getRequestParam('TransactionID');
         $transactionType    = $this->getRequestParam('transactionType');
         $this->context      = $context; // to be used from private methods
         // in the Requests made from the admin this holds the Order Number
@@ -523,7 +523,7 @@ class DmnController extends StorefrontController
         // exit, the Order was not found
         if(empty($order_id)) {
             if ($this->createAutoVoid()) {
-                $msg = 'The searched Order does not exists, a Void request was made for this Transacrion.';
+                $msg = 'The searched Order does not exists.';
                 $this->nuvei->createLog($msg);
                 
                 return [
@@ -560,10 +560,40 @@ class DmnController extends StorefrontController
         $order_request_time = $this->getRequestParam('customField3', 0); // time of create/update order
         
         // do not create AutoVoid
-        if (0 == $order_request_time
-            || time() - $order_request_time <= 1800 // less or 30 minutes
-        ) {
-            $this->nuvei->createLog($order_request_time, 'We will not create AutoVoid.');
+//        if (0 == $order_request_time
+//            || time() - $order_request_time <= 1800 // less or 30 minutes
+//        ) {
+//            $this->nuvei->createLog($order_request_time, 'We will not create AutoVoid.');
+//            return false;
+//        }
+        
+        // save notification
+        $data = [[
+            'status'    => 'open', // Notification status: open, done, archived
+            'message'   => '[Warning] Nuvei Payments Notification: The plugin cannot find corresponding Order for Nuvei Transaction ' . $this->getRequestParam('TransactionID') . '. Please, check it in the Nuvei Control Panel!',
+            'adminOnly' => true, // Visible to admins only
+            'createdAt' => (new \DateTime())->format('Y-m-d H:i:s'),
+//                'requiredPrivileges' => ['system:core:read'], // Define required privileges to view the notification
+        ]];
+        
+        try {
+            $sales_channel_context  = $this->request
+                ->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
+            $token                  = $sales_channel_context->getToken();
+            $salesChannelId         = $this->getRequestParam('customField6', 0);
+            $defaultContext         = Context::createDefaultContext(); // Create default context
+            // save notification
+            $this->notificationRepository->create($data, $defaultContext);
+            
+        }
+        catch (\Exception $e) {
+            $this->nuvei->createLog($e->getMessage(), 'Save notification exception');
+        }
+        //
+        
+        // check if the Auto Void is enabled
+        if ('yes' !== $this->systemConfigService->get('SwagNuveiCheckout.config.nuveiAllowAutoVoid')) {
+            $this->nuvei->createLog('The Auto Void is disabled.');
             return false;
         }
         
@@ -580,7 +610,6 @@ class DmnController extends StorefrontController
         $resp = $this->nuvei->callRestApi(
             'voidTransaction',
             $void_params,
-//            array('merchantId', 'merchantSiteId', 'clientRequestId', 'amount', 'currency', 'timeStamp')
             ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'url', 'timeStamp']
         );
 
@@ -589,10 +618,11 @@ class DmnController extends StorefrontController
             && 'APPROVED' == $resp['transactionStatus']
             && !empty($resp['transactionId'])
         ) {
+            $this->nuvei->createLog('Auto Void request success.');
             return true;
         }
         
-        $this->nuvei->createLog(null, 'AutoVoid request error.', 'WARN');
+        $this->nuvei->createLog(null, 'Auto Void request error.', 'WARN');
         return false;
     }
     
@@ -995,10 +1025,6 @@ class DmnController extends StorefrontController
         if (isset($_REQUEST[$name])) {
             return $_REQUEST[$name];
         }
-        
-        
-        
-        
         
         return $default;
     }

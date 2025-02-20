@@ -3,6 +3,7 @@
 # 1.3.0
 ```
     * Added option to turn on/off the auto-void logic - plugin settings > Basic Configuration.
+    * Added option to style Simply Connect.
     * The plugin will add notification when cannot find corresponding Order for some Sale/Auth DMN.
 ```
 

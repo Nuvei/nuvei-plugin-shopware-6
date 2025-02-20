@@ -220,7 +220,8 @@ class CheckoutController extends StorefrontController
                     'locale' => $locale
                 ]
             ],
-            'sourceApplication' => $this->nuvei->getSourceApplication(),
+            'sourceApplication'			=> $this->nuvei->getSourceApplication(),
+			'fieldStyle'				=> json_decode($this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkStyle'), true ),
         ];
         
         if (!empty($blocked_pms)) {

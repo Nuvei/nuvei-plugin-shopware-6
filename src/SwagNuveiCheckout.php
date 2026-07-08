@@ -3,7 +3,8 @@
 namespace Swag\NuveiCheckout;
 
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+// use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin;
@@ -16,30 +17,37 @@ use Swag\NuveiCheckout\Service\NuveiPayment;
 
 class SwagNuveiCheckout extends Plugin
 {
-    public function install(InstallContext $context): void
-    {
-        $this->addPaymentMethod($context->getContext());
-    }
-    
+   public function install(InstallContext $context): void
+   {
+       $this->addPaymentMethod($context->getContext());
+   }
+
+//     public function postInstall(InstallContext $context): void
+//     {
+//         parent::postInstall($context);
+
+//         $this->addPaymentMethod($context->getContext());
+//     }
+
     public function uninstall(UninstallContext $context): void
     {
         // Only set the payment method to inactive when uninstalling. Removing the payment method would
         // cause data consistency issues, since the payment method might have been used in several orders
         $this->setPaymentMethodIsActive(false, $context->getContext());
     }
-    
+
     public function activate(ActivateContext $context): void
     {
         $this->setPaymentMethodIsActive(true, $context->getContext());
         parent::activate($context);
     }
-    
+
     public function deactivate(DeactivateContext $context): void
     {
         $this->setPaymentMethodIsActive(false, $context->getContext());
         parent::deactivate($context);
     }
-    
+
     private function addPaymentMethod(Context $context): void
     {
         $paymentMethodExists = $this->getPaymentMethodId();
@@ -53,22 +61,27 @@ class SwagNuveiCheckout extends Plugin
         $pluginIdProvider   = $this->container->get(PluginIdProvider::class);
         $pluginId           = $pluginIdProvider->getPluginIdByBaseClass(get_class($this), $context);
 
+        if (!$pluginId) {
+            throw new \RuntimeException('Plugin ID could not be determined');
+        }
+
         $paymentData = [
             // payment handler will be selected by the identifier
             'handlerIdentifier' => NuveiPayment::class,
             'name'              => 'Nuvei payment',
+            'technicalName'     => 'nuvei_checkout',
             'description'       => 'Secure payments with Nuvei',
             'pluginId'          => $pluginId,
         ];
 
-        /** @var EntityRepositoryInterface $paymentRepository */
+        /** @var EntityRepository $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
         $paymentRepository->create([$paymentData], $context);
     }
-    
+
     private function setPaymentMethodIsActive(bool $active, Context $context): void
     {
-        /** @var EntityRepositoryInterface $paymentRepository */
+        /** @var EntityRepository $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
 
         $paymentMethodId = $this->getPaymentMethodId();
@@ -88,7 +101,7 @@ class SwagNuveiCheckout extends Plugin
 
     private function getPaymentMethodId(): ?string
     {
-        /** @var EntityRepositoryInterface $paymentRepository */
+        /** @var EntityRepository $paymentRepository */
         $paymentRepository = $this->container->get('payment_method.repository');
 
         // Fetch ID for update

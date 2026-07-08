@@ -273,5 +273,64 @@
 
             <helpText>&lt;a href=&quot;https://docs.nuvei.com/documentation/accept-payment/simply-connect/ui-customization/#text-and-translation&quot; target=&quot;_blank&quot;&gt;Check the Documentation&lt;/a&gt;</helpText>
         </input-field>
+        
+        <input-field>
+			<name>nuveiGpayMerchant</name>
+			<label>GPay Merchant ID</label>
+            
+            <helpText>For tests use BCR2DN6TZ6DP7P3X. &lt;a href=&quot;https://docs.nuvei.com/documentation/global-guides/google-pay/google-pay-integration/google-pay-guide-checkout-sdk/#2-collect-the-card-details&quot; target=&quot;_blank&quot;&gt;Check the Documentation&lt;/a&gt;</helpText>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiGpayBtnColor</name>
+			<label>GPay Button Color</label>
+            
+            <options>
+				<option>
+					<id>black</id>
+					<name>Black</name>
+				</option>
+				<option>
+					<id>white</id>
+					<name>White</name>
+				</option>
+			</options>
+            
+            <defaultValue>black</defaultValue>
+		</input-field>
+        
+        <input-field type="single-select">
+			<name>nuveiGpayBtnText</name>
+			<label>GPay Button Text</label>
+            
+            <options>
+				<option>
+					<id>buy</id>
+					<name>Buy</name>
+				</option>
+				<option>
+					<id>book</id>
+					<name>Book</name>
+				</option>
+				<option>
+					<id>checkout</id>
+					<name>Checkout</name>
+				</option>
+				<option>
+					<id>order</id>
+					<name>Order</name>
+				</option>
+				<option>
+					<id>pay</id>
+					<name>Pay</name>
+				</option>
+				<option>
+					<id>plain</id>
+					<name>Plain</name>
+				</option>
+			</options>
+            
+            <defaultValue>buy</defaultValue>
+		</input-field>
 	</card>
 </config>

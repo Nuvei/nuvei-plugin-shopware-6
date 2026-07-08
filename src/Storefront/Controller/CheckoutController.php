@@ -182,6 +182,7 @@ class CheckoutController extends StorefrontController
         
         $locale         = substr($locale_data->getCode(), 0, 2);
         $nuveiSdkTransl = (string) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl');
+        $nuveiSdkStyle  = $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkStyle') ?? '';
         
         $checkout_params = [
             'sessionToken'              => $resp['sessionToken'],
@@ -221,7 +222,7 @@ class CheckoutController extends StorefrontController
                 ]
             ],
             'sourceApplication'			=> $this->nuvei->getSourceApplication(),
-			'fieldStyle'				=> json_decode($this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkStyle'), true ),
+			'fieldStyle'				=> json_decode( $nuveiSdkStyle, true ),
         ];
         
         if (!empty($blocked_pms)) {

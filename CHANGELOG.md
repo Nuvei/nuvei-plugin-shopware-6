@@ -1,5 +1,10 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.4.0
+```
+    * The version is compatible with Shopware 6.7.x.x only.
+```
+
 # 1.3.0
 ```
     * Added option to turn on/off the auto-void logic - plugin settings > Basic Configuration.

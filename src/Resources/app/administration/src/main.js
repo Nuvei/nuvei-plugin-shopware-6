@@ -56,7 +56,7 @@ function runNuveiScripts() {
  * @returns void
  */
 function nuveiBuildButtons(resp) {
-	let nuveiActionBtns = document.querySelectorAll('#nuveiActions .sw-container .sw-button');
+	let nuveiActionBtns = document.querySelectorAll('#nuveiActions .nuveiButton');
 	
 	if (nuveiActionBtns.length == 0) {
 		console.log('Nuvei Error - action buttons are missing!');
@@ -65,7 +65,7 @@ function nuveiBuildButtons(resp) {
 
 	// check for Refund button
 	if (resp.hasOwnProperty('canRefund') && true === resp.canRefund) {
-		document.querySelector('#nuveiActions .sw-container #nuveiRefundBtn').style.display = 'inline';
+		document.querySelector('#nuveiActions #nuveiRefundBtn').style.display = 'inline';
 		document.querySelector('#nuveiRefundBtn').addEventListener('click', function() { 
 			nuveiAction('refund', resp.orderNumber);
 		});
@@ -73,7 +73,7 @@ function nuveiBuildButtons(resp) {
 
 	// check for Settle button
 	if (resp.hasOwnProperty('canSettle') && true === resp.canSettle) {
-		document.querySelector('#nuveiActions .sw-container #nuveiSettleBtn').style.display = 'inline';
+		document.querySelector('#nuveiActions #nuveiSettleBtn').style.display = 'inline';
 		document.querySelector('#nuveiSettleBtn').addEventListener('click', function() { 
 			nuveiAction('settle', resp.orderNumber);
 		});
@@ -81,7 +81,7 @@ function nuveiBuildButtons(resp) {
 
 	// check for Void button
 	if (resp.hasOwnProperty('canVoid') && true === resp.canVoid) {
-		document.querySelector('#nuveiActions .sw-container #nuveiVoidBtn').style.display = 'inline';
+		document.querySelector('#nuveiActions #nuveiVoidBtn').style.display = 'inline';
 		document.querySelector('#nuveiVoidBtn').addEventListener('click', function() { 
 			nuveiAction('void', resp.orderNumber);
 		});
@@ -179,46 +179,24 @@ function nuveiAction(action, orderNumber) {
 
 var nuveiOrderTpl =
 	'{% parent %}\
-	<div id="nuveiActions" >\
-		<div class="sw-card has--header has--title">\
-			<div class="sw-card__header">\
-				<div class="sw-card__titles">\
-					<div class="sw-card__title">Nuvei actions</div>\
-				</div>\
-				<img src="/bundles/swagnuveicheckout/storefront/img/rolling.gif" style="display: none;" id="nuveiLoader" width="20">\
-			</div>\
-			<div class="sw-card__content">\
-				<div class="sw-container" style="display: block;">\
-					<button class="sw-button sw-button--primary nuveiButton" id="nuveiRefundBtn" type="button" style="margin-right: 5px; display: none;">\
-						<span class="sw-button__content">Refund</span>\
-					</button>\
-					<button class="sw-button sw-button--primary nuveiButton" id="nuveiVoidBtn" type="button" style="margin-right: 5px; display: none;">\
-						<span class="sw-button__content">Void</span>\
-					</button>\
-					<button class="sw-button sw-button--primary nuveiButton" id="nuveiSettleBtn" type="button" style="margin-right: 5px; display: none;">\
-						<span class="sw-button__content">Settle</span>\
-					</button>\
-				</div>\
-			</div>\
+	<mt-card title="Nuvei actions" position-identifier="nuvei-actions">\
+		<div id="nuveiActions">\
+			<img src="/bundles/swagnuveicheckout/storefront/img/rolling.gif" style="display: none; vertical-align: middle; margin-right: 10px;" id="nuveiLoader" width="20">\
+			<mt-button variant="primary" class="nuveiButton" id="nuveiRefundBtn" style="margin-right: 5px; display: none;">Refund</mt-button>\
+			<mt-button variant="primary" class="nuveiButton" id="nuveiVoidBtn" style="margin-right: 5px; display: none;">Void</mt-button>\
+			<mt-button variant="primary" class="nuveiButton" id="nuveiSettleBtn" style="margin-right: 5px; display: none;">Settle</mt-button>\
 		</div>\
-	</div>\
-	<div id="nuveiNotes" class="sw-order-nuvei-notes" :onload="runNuveiScripts" >\
-		<div class="sw-card has--header has--title">\
-			<div class="sw-card__header">\
-				<div class="sw-card__titles">\
-					<div class="sw-card__title">Nuvei notes</div>\
-				</div>\
-			</div>\
-			<div class="sw-card__content">\
-				<table style="width: 100%; display: none;" border="0">\
-					<tr>\
-						<th style="width: 150px; text-align: left;">Date</th>\
-						<th style="text-align: left;">Note</th>\
-					</tr>\
-				</table>\
-			</div>\
+	</mt-card>\
+	<mt-card title="Nuvei notes" position-identifier="nuvei-notes">\
+		<div id="nuveiNotes" :onload="runNuveiScripts">\
+			<table style="width: 100%; display: none;" border="0">\
+				<tr>\
+					<th style="width: 150px; text-align: left;">Date</th>\
+					<th style="text-align: left;">Note</th>\
+				</tr>\
+			</table>\
 		</div>\
-	</div>';
+	</mt-card>';
 
 Shopware.Component.override('sw-order-detail-general', {
     template: '<!-- src/Administration/Resources/app/administration/src/module/sw-order/view/sw-order-detail-general/sw-order-detail-general.html.twig -->{% block sw_order_detail_general_info_card %}' + nuveiOrderTpl + '{% endblock %}',

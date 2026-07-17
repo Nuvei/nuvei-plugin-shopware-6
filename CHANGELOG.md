@@ -1,5 +1,11 @@
 # Nuvei Simply Connect for ShopWare 6
 
+# 1.5.0
+```
+    * Added a check for custom constant - NUVEI_CUSTOM_DMN_URL, holding in self a custom DMN URL.
+    * Fixes for better support of Shopware 6.7.x.x.
+```
+
 # 1.4.0
 ```
     * The version is compatible with Shopware 6.7.x.x only.

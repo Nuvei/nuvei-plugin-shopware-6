@@ -344,13 +344,17 @@ class Nuvei
             return $method_params;
         }
         
-        $endpoint       = $this->getEndPointBase() . $method . '.do';
-        $time           = date('YmdHis', time());
-        $json_path      = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
-        $json_data      = json_decode(file_get_contents($json_path . 'composer.json'), true);
-        $webMasterId    = 'ShopWare 6; Plugin v' . $json_data['version'];
-        $site_url       = $this->getSiteUrl();
+        $endpoint           = $this->getEndPointBase() . $method . '.do';
+        $time               = date('YmdHis', time());
+        $json_path          = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR;
+        $json_data          = json_decode(file_get_contents($json_path . 'composer.json'), true);
+        $webMasterId        = 'ShopWare 6; Plugin v' . $json_data['version'];
+        $site_url           = $this->getSiteUrl();
+        $notificationUrl    = $site_url . '/nuvei_dmn/';
         
+        if (defined('NUVEI_CUSTOM_DMN_URL')) {
+            $notificationUrl = NUVEI_CUSTOM_DMN_URL;
+        }
         
         // set here some of the mandatory parameters
         $params = array_merge(
@@ -363,9 +367,9 @@ class Nuvei
                 'deviceDetails'     => $this->getDeviceDetails(),
                 'webMasterId'       => $webMasterId,
                 'sourceApplication' => $this->getSourceApplication(),
-                'url'               => $site_url . '/nuvei_dmn/', // a custom parameter for the checksum
+                'url'               => $notificationUrl, // a custom parameter for the checksum
                 'urlDetails'        => [
-                    'notificationUrl'   => $site_url . '/nuvei_dmn/',
+                    'notificationUrl'   => $notificationUrl,
                     'backUrl'           => $site_url . '/checkout/confirm',
                 ],
             ],

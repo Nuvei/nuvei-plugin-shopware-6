@@ -36,6 +36,7 @@ class CheckoutController extends StorefrontController
     private $cartPersister;
     private $sysConfig;
     private $context;
+    private $salesChannelContext;
     private $isUserLoggedIn;
     private $request;
     
@@ -90,9 +91,10 @@ class CheckoutController extends StorefrontController
         
         // get the Cart
         /** @var SalesChannelContext $context */
-        $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
-        $salesChannelId         = $sales_channel_context->getSalesChannelId();
-        $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
+        $sales_channel_context          = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
+        $this->salesChannelContext      = $sales_channel_context;
+        $salesChannelId                 = $sales_channel_context->getSalesChannelId();
+        $this->cart                     = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
         if (!is_null($sales_channel_context->getCustomer())
             && isset($sales_channel_context->getCustomer()->guest)
@@ -283,8 +285,9 @@ class CheckoutController extends StorefrontController
         
         // get the Cart
         /** @var SalesChannelContext $context */
-        $sales_channel_context  = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
-        $this->cart             = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
+        $sales_channel_context          = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
+        $this->salesChannelContext      = $sales_channel_context;
+        $this->cart                     = $this->cartPersister->load($sales_channel_context->getToken(), $sales_channel_context);
         
         $nuvei_order_details    = $this->request->getSession()->get('nuvei_order_details', []);
         $session_data   = $nuvei_order_details['itemsDataHash'] ?? [];
@@ -530,56 +533,53 @@ class CheckoutController extends StorefrontController
      */
     private function getAddresses()
     {
-        // get delivery address
-        $addresses_obj = $this->cart->getDeliveries()->getAddresses()->getElements();
-        
-        if (!is_array($addresses_obj)) {
-            $this->nuvei->createLog($addresses_obj);
+        $customer = $this->salesChannelContext->getCustomer();
+
+        if (!$customer) {
+            $this->nuvei->createLog('getAddresses error - no customer in SalesChannelContext.');
             return [];
         }
-        
-        $first_address = current($addresses_obj);
-        
-        # get customer billing address
-        // get the Customer data
-        $criteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $first_address->getCustomerId()))
-            ->addAssociation('activeBillingAddress');
-        
-        $customer_data = $this->customerRepository->search($criteria, $this->context)->first();
-        
-        // get the Default Billing Address of the Customer
-        $criteria = (new Criteria())
-            ->addFilter(new EqualsFilter('id', $customer_data->getDefaultBillingAddressId()));
-        
-        $address_data = $this->customerAddressRepository->search($criteria, $this->context)->first();
-        
-        // get the Country
-        $criteria = (new Criteria())->addFilter(new EqualsFilter('id', $address_data->getCountryId()));
-        
-        $country_data = $this->countryRepository->search($criteria, $this->context)->first();
-        # /get customer billing address
-        
+
+        // Shipping address comes from the first cart delivery location
+        $delivery       = $this->cart->getDeliveries()->first();
+        $shipping_addr  = $delivery?->getLocation()->getAddress();
+
+        if (!$shipping_addr) {
+            $this->nuvei->createLog('getAddresses error - no shipping address on cart delivery.');
+            return [];
+        }
+
+        // Billing address: use the address the customer selected for this checkout session
+        $billing_addr = $customer->getActiveBillingAddress();
+
+        if (!$billing_addr) {
+            $this->nuvei->createLog('getAddresses error - no active billing address on customer.');
+            return [];
+        }
+
+        $shipping_country = $shipping_addr->getCountry();
+        $billing_country  = $billing_addr->getCountry();
+
         return [
-            'shippingAddress'   => [
-                "firstName"	=> $first_address->getFirstName(),
-                "lastName"	=> $first_address->getLastName(),
-                "address"   => $first_address->getStreet(),
-                "phone"     => $first_address->getPhoneNumber(),
-                "zip"       => $first_address->getZipcode(),
-                "city"      => $first_address->getCity(),
-                'country'	=> $first_address->getCountry()->getIso(),
-                'email'		=> $customer_data->getEmail(),
+            'shippingAddress' => [
+                'firstName' => $shipping_addr->getFirstName(),
+                'lastName'  => $shipping_addr->getLastName(),
+                'address'   => $shipping_addr->getStreet(),
+                'phone'     => $shipping_addr->getPhoneNumber(),
+                'zip'       => $shipping_addr->getZipcode(),
+                'city'      => $shipping_addr->getCity(),
+                'country'   => $shipping_country ? $shipping_country->getIso() : '',
+                'email'     => $customer->getEmail(),
             ],
-            'billingAddress'   => [
-                "firstName"	=> $address_data->getFirstname(),
-                "lastName"	=> $address_data->getLastname(),
-                "address"   => $address_data->getStreet(),
-                "phone"     => $address_data->getPhoneNumber(),
-                "zip"       => $address_data->getZipcode(),
-                "city"      => $address_data->getCity(),
-                'country'	=> $country_data->getIso(),
-                'email'		=> $customer_data->getEmail(),
+            'billingAddress' => [
+                'firstName' => $billing_addr->getFirstName(),
+                'lastName'  => $billing_addr->getLastName(),
+                'address'   => $billing_addr->getStreet(),
+                'phone'     => $billing_addr->getPhoneNumber(),
+                'zip'       => $billing_addr->getZipcode(),
+                'city'      => $billing_addr->getCity(),
+                'country'   => $billing_country ? $billing_country->getIso() : '',
+                'email'     => $customer->getEmail(),
             ],
         ];
     }

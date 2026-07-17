@@ -220,18 +220,6 @@ var nuveiOrderTpl =
 		</div>\
 	</div>';
 
-// for SW 6.4.x
-Shopware.Component.override('sw-order-detail-base', {
-	template: '<!-- https://github.com/shopware/shopware/blob/6.4.20.0/src/Administration/Resources/app/administration/src/module/sw-order/view/sw-order-detail-base/sw-order-detail-base.html.twig -->{% block sw_order_detail_base__user_card %}' + nuveiOrderTpl + '{% endblock %}',
-	
-	computed: {
-		runNuveiScripts() {
-			runNuveiScripts();
-		}
-	}
-});
-
-// for SW 6.5.x
 Shopware.Component.override('sw-order-detail-general', {
     template: '<!-- src/Administration/Resources/app/administration/src/module/sw-order/view/sw-order-detail-general/sw-order-detail-general.html.twig -->{% block sw_order_detail_general_info_card %}' + nuveiOrderTpl + '{% endblock %}',
 	

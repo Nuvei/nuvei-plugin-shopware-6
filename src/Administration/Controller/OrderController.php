@@ -291,20 +291,17 @@ class OrderController extends AbstractController
         
         foreach (array_reverse($order_custom_fields['nuveiTransactions'], true)  as $trId => $trData) {
             if ('settle' == $action && 'Auth' == $trData['transaction_type']) {
-//                $last_tr['auth_code']   = $trData['auth_code'];
-                $last_tr['tr_id']       = $trId;
+                $last_tr['tr_id'] = $trId;
                 break;
             }
             
             if ('void' == $action && in_array($trData['transaction_type'], ['Settle', 'Sale', 'Auth'])) {
-//                $last_tr['auth_code']   = $trData['auth_code'];
-                $last_tr['tr_id']       = $trId;
+                $last_tr['tr_id'] = $trId;
                 break;
             }
             
             if ('refund' == $action && in_array($trData['transaction_type'], ['Settle', 'Sale'])) {
-//                $last_tr['auth_code']   = $trData['auth_code'];
-                $last_tr['tr_id']       = $trId;
+                $last_tr['tr_id'] = $trId;
                 break;
             }
         }
@@ -326,16 +323,9 @@ class OrderController extends AbstractController
             'amount'                => $order->amountTotal,
             'currency'              => $curr_code,
             'relatedTransactionId'  => $last_tr['tr_id'],
-//            'authCode'              => $last_tr['auth_code'],
         ];
         
-//        $checksum_params = ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'authCode', 'url', 'timeStamp'];
-        
-//        if (empty($params['authCode'])) {
-//            unset($params['authCode']);
-            
-            $checksum_params = ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'url', 'timeStamp'];
-//        }
+        $checksum_params = ['merchantId', 'merchantSiteId', 'clientRequestId', 'clientUniqueId', 'amount', 'currency', 'relatedTransactionId', 'url', 'timeStamp'];
         
         $resp = $this->nuvei->callRestApi($action . 'Transaction', $params, $checksum_params);
         

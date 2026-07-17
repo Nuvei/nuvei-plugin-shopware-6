@@ -17,7 +17,7 @@
             <argument type="service" id="Swag\NuveiCheckout\Service\Nuvei"/>
             <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
             
-            <tag name="shopware.payment.method.sync" />
+            <tag name="shopware.payment.method" />
         </service>
         
         <!-- Checkout controller to use for Ajax calls. -->

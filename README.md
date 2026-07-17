@@ -8,7 +8,7 @@ A wide selection of region-specific payment methods can help your business grow 
 The correct payment methods at the checkout page can bring you global reach, help you increase conversions, and create a seamless experience for your customers.
 
 ## System Requirements
-- Shopware 6.5.* and up.  
+- Shopware 6.7.* and up.  
 - Working PHP cURL module.
 - Public access to the plugin notification URL – "site_domain/nuvei_dmn/".
 

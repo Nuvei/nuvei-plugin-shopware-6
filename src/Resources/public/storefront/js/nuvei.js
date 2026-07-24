@@ -58,8 +58,9 @@ window.nuveiRenderCheckout = function() {
                 nuveiTexts = response.texts;
 
                 // call Checkout SDK
-                response.nuveiSdkParams.onResult    = nuveiAfterSdkResponse;
-                response.nuveiSdkParams.prePayment  = nuveiUpdateCart;
+                response.nuveiSdkParams.onResult                = nuveiAfterSdkResponse;
+                response.nuveiSdkParams.prePayment              = nuveiUpdateCart;
+                response.nuveiSdkParams.crossBrowserApplePay    = true;
                 
                 if ('shopwareautomation.gw-4u.com' === window.location.host) {
                     response.nuveiSdkParams.webSdkEnv = 'devmobile'; 

@@ -4,6 +4,8 @@
 ```
     * Added a check for custom constant - NUVEI_CUSTOM_DMN_URL, holding in self a custom DMN URL.
     * Fixes for better support of Shopware 6.7.x.x.
+    * Enabled ApplePay support for all browsers.
+    * ApplePay and GPay were moved into the Gallery.
 ```
 
 # 1.4.0

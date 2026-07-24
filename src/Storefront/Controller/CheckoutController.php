@@ -186,6 +186,20 @@ class CheckoutController extends StorefrontController
         $nuveiSdkTransl = (string) $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTransl');
         $nuveiSdkStyle  = $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkStyle') ?? '';
         
+        // add GooglePay settings
+        $googlePaySettings = [
+            'locale'            => $locale,
+//            'buttonLocation'    => $this->get_option( 'gpay_button_position', '' ),
+            'buttonLocation'    => 'gallery',
+        ];
+        
+        // add ApplePay settings
+        $applePaySettings = [
+            'locale'            => $locale,
+//            'buttonLocation'    => $this->get_option( 'applepay_button_position', '' ),
+            'buttonLocation'    => 'gallery',
+        ];
+        
         $checkout_params = [
             'sessionToken'              => $resp['sessionToken'],
 			'env'                       => 'sandbox' == $this->sysConfig
@@ -219,10 +233,9 @@ class CheckoutController extends StorefrontController
 //			'apmWindowType'             => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiApmWindowType'),
 			'theme'                     => $this->sysConfig->get('SwagNuveiCheckout.config.nuveiSdkTheme'),
             'apmConfig'                 => [
-                'googlePay' => [
-                    'locale' => $locale
-                ]
-            ],
+				'googlePay' => $googlePaySettings,
+				'applePay'  => $applePaySettings,
+			],
             'sourceApplication'			=> $this->nuvei->getSourceApplication(),
 			'fieldStyle'				=> json_decode( $nuveiSdkStyle, true ),
         ];
